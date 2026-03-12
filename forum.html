@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forum Creation — Browse Posts</title>
+  <link rel="stylesheet" href="css/forum.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="logo">Forum <span>Creation</span></a>
+    <div class="nav-right">
+      <button class="btn btn-primary" onclick="openModal()">
+        &#43; Create Post
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN LAYOUT -->
+  <div class="layout">
+
+    <!-- FEED -->
+    <main>
+      <div class="feed-header">
+        <h1>All Posts</h1>
+        <span id="post-count" style="color:var(--muted); font-size:0.85rem;">0 posts</span>
+      </div>
+
+      <!-- SEARCH -->
+      <div class="search-wrap">
+        <span class="search-icon">&#128269;</span>
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search posts by title, topic, or keyword..."
+          oninput="handleSearch()"
+          onkeydown="if(event.key==='Escape') clearSearch()"
+          autocomplete="off"
+        />
+        <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear search">&#10005;</button>
+      </div>
+
+      <!-- FORUM FILTER PILLS -->
+      <div class="filter-pills">
+        <button class="pill active" onclick="setFilter('All', this)">All</button>
+        <button class="pill" onclick="setFilter('General', this)">General</button>
+        <button class="pill" onclick="setFilter('Technology', this)">Technology</button>
+        <button class="pill" onclick="setFilter('Photography', this)">Photography</button>
+        <button class="pill" onclick="setFilter('Discussion', this)">Discussion</button>
+        <button class="pill" onclick="setFilter('Creative', this)">Creative</button>
+      </div>
+
+      <div id="feed">
+        <!-- posts rendered here by JS -->
+      </div>
+    </main>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <h3>&#127758; About Forum Creation</h3>
+        <p>A site where users can post and share their ideas with others. Join the conversation today.</p>
+        <button class="btn btn-primary" style="width:100%;" onclick="openModal()">&#43; Create Post</button>
+      </div>
+
+      <div class="sidebar-card">
+        <h3>&#128202; Community Stats</h3>
+        <div class="sidebar-stat"><span>Total Posts</span><span id="stat-posts">0</span></div>
+        <div class="sidebar-stat"><span>Total Votes</span><span id="stat-votes">0</span></div>
+        <div class="sidebar-stat"><span>Members</span><span>10,000+</span></div>
+      </div>
+
+      <div class="sidebar-card">
+        <h3>&#128214; Forums</h3>
+        <div class="sidebar-stat"><span>General</span><span>&#128172;</span></div>
+        <div class="sidebar-stat"><span>Technology</span><span>&#128187;</span></div>
+        <div class="sidebar-stat"><span>Photography</span><span>&#128247;</span></div>
+        <div class="sidebar-stat"><span>Discussion</span><span>&#129302;</span></div>
+        <div class="sidebar-stat"><span>Creative</span><span>&#127775;</span></div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- CREATE POST MODAL -->
+  <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>&#128172; Create a Post</h2>
+        <button class="close-btn" onclick="closeModal()">&#10005;</button>
+      </div>
+
+      <form id="post-form" onsubmit="submitPost(event)">
+
+        <div class="form-group">
+          <label for="post-forum">Forum</label>
+          <select id="post-forum" required>
+            <option value="" disabled selected>Select a forum...</option>
+            <option value="General">General</option>
+            <option value="Technology">Technology</option>
+            <option value="Photography">Photography</option>
+            <option value="Discussion">Discussion</option>
+            <option value="Creative">Creative</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="post-title">Title</label>
+          <input
+            type="text"
+            id="post-title"
+            placeholder="Give your post a title..."
+            maxlength="200"
+            required
+          />
+          <div class="char-count"><span id="title-count">0</span>/200</div>
+        </div>
+
+        <div class="form-group">
+          <label for="post-body">Content</label>
+          <textarea
+            id="post-body"
+            placeholder="Share your idea, story, or question..."
+            maxlength="2000"
+          ></textarea>
+          <div class="char-count"><span id="body-count">0</span>/2000</div>
+        </div>
+
+        <div class="form-group">
+          <label>Image (optional)</label>
+          <div
+            class="image-upload-area"
+            id="upload-area"
+            onclick="document.getElementById('img-input').click()"
+            ondragover="handleDragOver(event)"
+            ondragleave="handleDragLeave(event)"
+            ondrop="handleDrop(event)"
+          >
+            <input type="file" id="img-input" accept="image/*" onchange="handleImageSelect(event)" />
+            <div id="upload-placeholder">
+              <div class="upload-icon">&#128444;</div>
+              <div class="upload-label">
+                Drag & drop or <span>browse</span> to upload an image
+              </div>
+              <div style="font-size:0.72rem; color:var(--muted); margin-top:6px;">PNG, JPG, GIF, WEBP supported</div>
+            </div>
+            <div class="image-preview-wrap" id="img-preview-wrap">
+              <img id="img-preview" src="" alt="Preview" />
+              <button type="button" class="remove-img" onclick="removeImage(event)">&#10005; Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mod-error" id="mod-error">
+          <strong>&#128737; Post blocked by moderation</strong>
+          <span id="mod-error-msg"></span>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Publish Post</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- REPORT MODAL -->
+  <div class="report-overlay" id="report-overlay" onclick="handleReportOverlayClick(event)">
+    <div class="report-modal">
+      <div class="modal-header">
+        <h2>&#9873; Report Post</h2>
+        <button class="close-btn" onclick="closeReportModal()">&#10005;</button>
+      </div>
+      <p style="font-size:0.85rem; color:var(--muted);">Why are you reporting this post? We'll review it promptly.</p>
+
+      <div class="report-reasons" id="report-reasons">
+        <label class="reason-option">
+          <input type="radio" name="report-reason" value="Spam" />
+          <span class="reason-label">&#128286; Spam or misleading</span>
+        </label>
+        <label class="reason-option">
+          <input type="radio" name="report-reason" value="Harassment" />
+          <span class="reason-label">&#128545; Harassment or bullying</span>
+        </label>
+        <label class="reason-option">
+          <input type="radio" name="report-reason" value="Inappropriate content" />
+          <span class="reason-label">&#128683; Inappropriate or offensive content</span>
+        </label>
+        <label class="reason-option">
+          <input type="radio" name="report-reason" value="Misinformation" />
+          <span class="reason-label">&#10060; Misinformation or false claims</span>
+        </label>
+        <label class="reason-option">
+          <input type="radio" name="report-reason" value="Off-topic" />
+          <span class="reason-label">&#128260; Off-topic or irrelevant</span>
+        </label>
+        <label class="reason-option">
+          <input type="radio" name="report-reason" value="Other" />
+          <span class="reason-label">&#8226; Other</span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label for="report-details">Additional details (optional)</label>
+        <textarea id="report-details" placeholder="Describe the issue in more detail..."></textarea>
+      </div>
+
+      <div id="report-error" style="display:none; color:var(--accent-2); font-size:0.82rem; margin-bottom:12px;">
+        Please select a reason before submitting.
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeReportModal()">Cancel</button>
+        <button type="button" class="btn" style="background:#fbbf24; color:#0d0f14;" onclick="submitReport()">
+          Submit Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script src="js/forum.js"></script>
+
+</body>
+</html>
