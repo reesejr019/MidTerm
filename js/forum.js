@@ -56,6 +56,7 @@ let posts = JSON.parse(localStorage.getItem('fc_posts') || '[]');
 let selectedImageDataURL = null;
 let searchQuery = '';
 let activeFilter = 'All';
+let expandedComments = new Set(); // tracks which post comment sections are open
 
 // ── SEARCH ──
 function handleSearch() {
@@ -161,6 +162,10 @@ function renderFeed() {
           ${post.image ? `<img class="post-image" src="${post.image}" alt="Post image" />` : ''}
           ${post.body ? `<div class="post-text">${highlight(post.body, searchQuery)}</div>` : ''}
           <div class="post-footer">
+            <button class="post-action comment" id="comment-btn-${post.id}"
+              onclick="toggleComments(${post.id})">
+              &#128172; ${(post.comments || []).length} Comment${(post.comments || []).length !== 1 ? 's' : ''}
+            </button>
             <button class="post-action report ${post.reported ? 'active' : ''}"
               onclick="openReportModal(${post.id})" title="${post.reported ? 'Already reported' : 'Report post'}">
               &#9873; ${post.reported ? 'Reported' : 'Report'}
@@ -169,6 +174,10 @@ function renderFeed() {
             <button class="post-action delete" onclick="deletePost(${post.id})">
               &#128465; Delete
             </button>` : ''}
+          </div>
+          <div class="comment-section" id="comments-${post.id}"
+            style="${expandedComments.has(post.id) ? '' : 'display:none'}">
+            ${buildCommentSectionInner(post)}
           </div>
         </div>
       </div>
@@ -218,7 +227,8 @@ function submitPost(e) {
     author: getCurrentUser(),
     score: 1,
     userVote: 1,
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    comments: []
   };
 
   posts.push(newPost);
@@ -405,6 +415,115 @@ function timeAgo(ts) {
   if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
   if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
   return Math.floor(diff / 86400) + 'd ago';
+}
+
+// ── COMMENTS ──
+function toggleComments(id) {
+  const section = document.getElementById(`comments-${id}`);
+  if (!section) return;
+  if (expandedComments.has(id)) {
+    expandedComments.delete(id);
+    section.style.display = 'none';
+  } else {
+    expandedComments.add(id);
+    section.style.display = 'block';
+    const input = document.getElementById(`comment-input-${id}`);
+    if (input) setTimeout(() => input.focus(), 50);
+  }
+}
+
+function buildCommentSectionInner(post) {
+  const comments = post.comments || [];
+  const user = getCurrentUser();
+
+  const listHTML = comments.length === 0
+    ? '<p class="no-comments">No comments yet. Be the first!</p>'
+    : comments.map(c => `
+      <div class="comment-item">
+        <div class="comment-meta">
+          <strong class="comment-author">${escapeHTML(c.author)}</strong>
+          <span class="comment-time">${timeAgo(c.createdAt)}</span>
+          ${c.author === user ? `<button class="comment-delete" onclick="deleteComment(${post.id}, ${c.id})" title="Delete comment">&#128465;</button>` : ''}
+        </div>
+        <div class="comment-body">${escapeHTML(c.body)}</div>
+      </div>`).join('');
+
+  const formHTML = user
+    ? `<div class="comment-form">
+        <div class="comment-input-row">
+          <div class="comment-avatar">${escapeHTML(user.charAt(0).toUpperCase())}</div>
+          <textarea
+            id="comment-input-${post.id}"
+            class="comment-textarea"
+            placeholder="Write a comment... (Ctrl+Enter to post)"
+            maxlength="500"
+            rows="2"
+            oninput="document.getElementById('comment-count-${post.id}').textContent = this.value.length"
+            onkeydown="if(event.ctrlKey && event.key==='Enter') submitComment(${post.id})"
+          ></textarea>
+        </div>
+        <div class="comment-form-footer">
+          <span class="char-count"><span id="comment-count-${post.id}">0</span>/500</span>
+          <button class="btn btn-primary btn-sm" onclick="submitComment(${post.id})">Post Comment</button>
+        </div>
+      </div>`
+    : `<div class="comment-login-prompt">
+        <a href="#" onclick="openAuthModal('login'); return false;">Log in</a> to join the conversation.
+      </div>`;
+
+  return listHTML + formHTML;
+}
+
+function renderCommentSection(postId) {
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+  const section = document.getElementById(`comments-${postId}`);
+  if (section) section.innerHTML = buildCommentSectionInner(post);
+  const btn = document.getElementById(`comment-btn-${postId}`);
+  if (btn) {
+    const count = (post.comments || []).length;
+    btn.innerHTML = `&#128172; ${count} Comment${count !== 1 ? 's' : ''}`;
+  }
+}
+
+function submitComment(postId) {
+  if (!getCurrentUser()) {
+    openAuthModal('login');
+    return;
+  }
+  const input = document.getElementById(`comment-input-${postId}`);
+  const body = input ? input.value.trim() : '';
+  if (!body) return;
+
+  const flagged = moderateText(body);
+  if (flagged) {
+    showToast(`Comment blocked: "${flagged}" is not allowed.`);
+    return;
+  }
+
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+  if (!post.comments) post.comments = [];
+
+  post.comments.push({
+    id: Date.now(),
+    author: getCurrentUser(),
+    body,
+    createdAt: Date.now()
+  });
+
+  savePosts();
+  renderCommentSection(postId);
+  showToast('Comment posted!');
+}
+
+function deleteComment(postId, commentId) {
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+  post.comments = (post.comments || []).filter(c => c.id !== commentId);
+  savePosts();
+  renderCommentSection(postId);
+  showToast('Comment deleted.');
 }
 
 // ── INIT ──
