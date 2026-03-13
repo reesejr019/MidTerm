@@ -162,9 +162,9 @@ function renderFeed() {
           ${post.image ? `<img class="post-image" src="${post.image}" alt="Post image" />` : ''}
           ${post.body ? `<div class="post-text">${highlight(post.body, searchQuery)}</div>` : ''}
           <div class="post-footer">
-            <button class="post-action comment" id="comment-btn-${post.id}"
+            <button class="post-action comment ${expandedComments.has(post.id) ? 'open' : ''}" id="comment-btn-${post.id}"
               onclick="toggleComments(${post.id})">
-              &#128172; ${(post.comments || []).length} Comment${(post.comments || []).length !== 1 ? 's' : ''}
+              &#128172; ${(post.comments || []).length} Comment${(post.comments || []).length !== 1 ? 's' : ''} <span class="comment-chevron">&#9662;</span>
             </button>
             <button class="post-action report ${post.reported ? 'active' : ''}"
               onclick="openReportModal(${post.id})" title="${post.reported ? 'Already reported' : 'Report post'}">
@@ -420,13 +420,16 @@ function timeAgo(ts) {
 // ── COMMENTS ──
 function toggleComments(id) {
   const section = document.getElementById(`comments-${id}`);
+  const btn     = document.getElementById(`comment-btn-${id}`);
   if (!section) return;
   if (expandedComments.has(id)) {
     expandedComments.delete(id);
     section.style.display = 'none';
+    if (btn) btn.classList.remove('open');
   } else {
     expandedComments.add(id);
     section.style.display = 'block';
+    if (btn) btn.classList.add('open');
     const input = document.getElementById(`comment-input-${id}`);
     if (input) setTimeout(() => input.focus(), 50);
   }
@@ -482,7 +485,7 @@ function renderCommentSection(postId) {
   const btn = document.getElementById(`comment-btn-${postId}`);
   if (btn) {
     const count = (post.comments || []).length;
-    btn.innerHTML = `&#128172; ${count} Comment${count !== 1 ? 's' : ''}`;
+    btn.innerHTML = `&#128172; ${count} Comment${count !== 1 ? 's' : ''} <span class="comment-chevron">&#9662;</span>`;
   }
 }
 

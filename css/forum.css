@@ -714,6 +714,16 @@ input[type="password"]:focus { border-color: var(--accent); }
 
 /* ── COMMENTS ── */
 .post-action.comment:hover { color: var(--accent); }
+.post-action.comment.open  { color: var(--accent); }
+
+.comment-chevron {
+  display: inline-block;
+  font-size: 0.65rem;
+  margin-left: 2px;
+  transition: transform 0.2s ease;
+}
+
+.post-action.comment.open .comment-chevron { transform: rotate(180deg); }
 
 .comment-section {
   border-top: 1px solid var(--border);
