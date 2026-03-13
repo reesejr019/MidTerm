@@ -51,6 +51,7 @@ let posts = [];
 let selectedImageDataURL = null;
 let searchQuery = '';
 let activeFilter = 'All';
+let activeSort = 'hot';
 let expandedComments = new Set();
 
 // ── SEARCH / FILTER ──
@@ -75,9 +76,26 @@ function setFilter(forum, el) {
   _renderFeedDOM();
 }
 
+function setSort(sort, el) {
+  activeSort = sort;
+  document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  _renderFeedDOM();
+}
+
+function hotScore(post) {
+  const ageHours = (Date.now() - post.createdAt) / (1000 * 60 * 60);
+  return post.score / Math.pow(ageHours + 2, 1.5);
+}
+
+function isTrending(post) {
+  const ageHours = (Date.now() - post.createdAt) / (1000 * 60 * 60);
+  return post.score >= 3 && ageHours <= 48;
+}
+
 function getFilteredPosts() {
   const q = searchQuery.toLowerCase();
-  return posts.slice().filter(post => {
+  const filtered = posts.slice().filter(post => {
     const matchesForum = activeFilter === 'All' || post.forum === activeFilter;
     const matchesQuery = !q
       || post.title.toLowerCase().includes(q)
@@ -85,6 +103,13 @@ function getFilteredPosts() {
       || post.forum.toLowerCase().includes(q);
     return matchesForum && matchesQuery;
   });
+
+  switch (activeSort) {
+    case 'hot': return filtered.sort((a, b) => hotScore(b) - hotScore(a));
+    case 'new': return filtered.sort((a, b) => b.createdAt - a.createdAt);
+    case 'top': return filtered.sort((a, b) => b.score - a.score);
+    default:    return filtered;
+  }
 }
 
 function highlight(text, query) {
@@ -189,6 +214,7 @@ function _renderFeedDOM() {
           &nbsp;·&nbsp; ${timeAgo(post.createdAt)}
         </div>
         <div class="post-title">${highlight(post.title, searchQuery)}</div>
+        ${activeSort === 'hot' && isTrending(post) ? `<div class="trending-badge">&#128293; Trending</div>` : ''}
         ${post.reported ? `
         <div class="reported-banner">
           &#9888; Reported &nbsp;&middot;&nbsp; ${escapeHTML(post.reportReason)}
