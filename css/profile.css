@@ -211,22 +211,13 @@
   border-radius: 100px;
 }
 
-/* ── DANGER ZONE ── */
-.danger-zone-card {
-  background: var(--card);
-  border: 1px solid rgba(255,107,107,0.3);
-  border-radius: var(--radius);
-  padding: 22px 28px;
+/* ── DANGER ZONE (inside edit card) ── */
+.edit-danger-divider {
+  border-top: 1px solid rgba(255,107,107,0.2);
+  margin: 24px 0 20px;
 }
 
-.danger-zone-card h3 {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--accent-2);
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255,107,107,0.2);
-}
+.danger-zone-inline { }
 
 .danger-zone-body {
   display: flex;
