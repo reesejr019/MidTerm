@@ -165,9 +165,10 @@ function renderFeed() {
               onclick="openReportModal(${post.id})" title="${post.reported ? 'Already reported' : 'Report post'}">
               &#9873; ${post.reported ? 'Reported' : 'Report'}
             </button>
+            ${post.author === getCurrentUser() ? `
             <button class="post-action delete" onclick="deletePost(${post.id})">
               &#128465; Delete
-            </button>
+            </button>` : ''}
           </div>
         </div>
       </div>
@@ -214,7 +215,7 @@ function submitPost(e) {
     body,
     forum,
     image: selectedImageDataURL || null,
-    author: 'You',
+    author: getCurrentUser(),
     score: 1,
     userVote: 1,
     createdAt: Date.now()
@@ -286,6 +287,11 @@ function submitReport() {
 
 // ── VOTE ──
 function vote(id, dir) {
+  if (!getCurrentUser()) {
+    openAuthModal('login');
+    showToast('Please log in to vote.');
+    return;
+  }
   const post = posts.find(p => p.id === id);
   if (!post) return;
 
@@ -304,6 +310,11 @@ function vote(id, dir) {
 
 // ── MODAL ──
 function openModal() {
+  if (!getCurrentUser()) {
+    openAuthModal('login');
+    showToast('Please log in to create a post.');
+    return;
+  }
   document.getElementById('overlay').classList.add('open');
   document.getElementById('post-title').focus();
 }

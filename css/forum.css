@@ -641,3 +641,72 @@ mark {
 
 .report-modal textarea:focus { border-color: #fbbf24; }
 .report-modal textarea::placeholder { color: var(--muted); }
+
+/* ── AUTH ── */
+.btn-sm { padding: 7px 16px; font-size: 0.82rem; }
+
+.nav-username {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* password input inherits the shared input rule */
+input[type="password"] {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input[type="password"]:focus { border-color: var(--accent); }
+
+.auth-modal { max-width: 420px; }
+
+.auth-tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+
+.auth-tab {
+  flex: 1;
+  background: var(--surface);
+  border: none;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 10px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.auth-tab:first-child { border-right: 1px solid var(--border); }
+.auth-tab:hover { color: var(--text); }
+.auth-tab.active { background: rgba(124,111,255,0.15); color: var(--accent); }
+
+.auth-error {
+  font-size: 0.82rem;
+  color: var(--accent-2);
+  min-height: 1.2em;
+  margin-bottom: 12px;
+}
+
+.auth-switch-text {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 18px;
+}
+
+.auth-switch-text a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.auth-switch-text a:hover { text-decoration: underline; }

@@ -11,10 +11,8 @@
   <!-- NAV -->
   <nav>
     <a href="index.html" class="logo">Forum <span>Creation</span></a>
-    <div class="nav-right">
-      <button class="btn btn-primary" onclick="openModal()">
-        &#43; Create Post
-      </button>
+    <div class="nav-right" id="nav-right">
+      <!-- rendered by auth.js -->
     </div>
   </nav>
 
@@ -82,6 +80,58 @@
       </div>
     </aside>
 
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="overlay" id="auth-overlay" onclick="handleAuthOverlayClick(event)">
+    <div class="modal auth-modal">
+      <div class="modal-header">
+        <h2 id="auth-modal-title">Log In</h2>
+        <button class="close-btn" onclick="closeAuthModal()">&#10005;</button>
+      </div>
+
+      <div class="auth-tabs">
+        <button id="auth-tab-login"  class="auth-tab active" onclick="switchAuthMode('login')">Log In</button>
+        <button id="auth-tab-signup" class="auth-tab"        onclick="switchAuthMode('signup')">Sign Up</button>
+      </div>
+
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+        <div class="form-group">
+          <label for="auth-username">Username</label>
+          <input
+            type="text"
+            id="auth-username"
+            placeholder="e.g. cool_user123"
+            maxlength="30"
+            autocomplete="username"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="auth-password">Password</label>
+          <input
+            type="password"
+            id="auth-password"
+            placeholder="At least 6 characters"
+            maxlength="100"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+
+        <div class="auth-error" id="auth-error"></div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" onclick="closeAuthModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="auth-submit-btn">Log In</button>
+        </div>
+      </form>
+
+      <p class="auth-switch-text" id="auth-switch-text">
+        Don't have an account? <a href="#" onclick="switchAuthMode('signup'); return false;">Sign Up</a>
+      </p>
+    </div>
   </div>
 
   <!-- CREATE POST MODAL -->
@@ -224,6 +274,7 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
+  <script src="js/auth.js"></script>
   <script src="js/forum.js"></script>
 
 </body>
