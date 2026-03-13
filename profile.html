@@ -96,6 +96,28 @@
       </main>
 
     </div>
+
+    <!-- DANGER ZONE -->
+    <div class="danger-zone-card">
+      <h3>&#9888; Danger Zone</h3>
+      <div class="danger-zone-body">
+        <div>
+          <strong>Delete Account</strong>
+          <p>Permanently removes your account, profile, and all associated data. This cannot be undone.</p>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm()">Delete Account</button>
+      </div>
+
+      <div class="delete-confirm" id="delete-confirm" style="display:none;">
+        <p>Type <strong id="confirm-username-label"></strong> to confirm deletion:</p>
+        <input type="text" id="delete-confirm-input" placeholder="Enter your username..." autocomplete="off" />
+        <div class="danger-actions">
+          <button class="btn btn-ghost btn-sm" onclick="hideDeleteConfirm()">Cancel</button>
+          <button class="btn btn-danger btn-sm" id="delete-final-btn" onclick="deleteAccount()">&#128465; Permanently Delete</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- TOAST -->

@@ -191,3 +191,43 @@ function handleTagKeydown(e) {
 document.getElementById('edit-bio').addEventListener('input', function() {
   document.getElementById('bio-count').textContent = this.value.length;
 });
+
+// ── DELETE ACCOUNT ──
+function showDeleteConfirm() {
+  document.getElementById('confirm-username-label').textContent = getCurrentUser().username;
+  document.getElementById('delete-confirm-input').value = '';
+  document.getElementById('delete-confirm').style.display = 'block';
+  document.getElementById('delete-confirm-input').focus();
+}
+
+function hideDeleteConfirm() {
+  document.getElementById('delete-confirm').style.display = 'none';
+  document.getElementById('delete-confirm-input').value = '';
+}
+
+async function deleteAccount() {
+  const input    = document.getElementById('delete-confirm-input').value.trim();
+  const username = getCurrentUser().username;
+
+  if (input !== username) {
+    showToast('Username does not match. Please try again.');
+    document.getElementById('delete-confirm-input').focus();
+    return;
+  }
+
+  const btn = document.getElementById('delete-final-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Deleting...';
+
+  const { error } = await sb.rpc('delete_user_account');
+
+  if (error) {
+    showToast('Error deleting account. Please try again.');
+    btn.disabled   = false;
+    btn.innerHTML  = '&#128465; Permanently Delete';
+    return;
+  }
+
+  await sb.auth.signOut();
+  window.location.href = 'forum.html';
+}
