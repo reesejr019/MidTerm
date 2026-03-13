@@ -154,9 +154,29 @@
 }
 
 @media (max-width: 720px) {
+  .profile-layout { padding: 20px 14px; }
   .profile-grid { grid-template-columns: 1fr; }
-  .profile-header-card { flex-wrap: wrap; }
+  .profile-header-card { flex-wrap: wrap; padding: 20px; }
   .profile-edit-btn { margin-left: 0; width: 100%; justify-content: center; }
+  .profile-edit-card { padding: 20px; }
+  .danger-zone-body { flex-direction: column; align-items: flex-start; }
+  .btn-danger { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .profile-layout { padding: 14px 10px; }
+  .profile-header-card { padding: 16px; gap: 14px; }
+  .profile-avatar { width: 56px; height: 56px; font-size: 1.6rem; }
+  .profile-username { font-size: 1.15rem; }
+  .profile-edit-card { padding: 16px 14px; }
+
+  /* Prevent iOS input zoom */
+  input[type="text"],
+  textarea { font-size: 16px; }
+
+  .tag-input-wrap input { font-size: 16px; min-width: 100px; }
+
+  .delete-confirm input { font-size: 16px; }
 }
 
 /* ── ABOUT CARD ── */

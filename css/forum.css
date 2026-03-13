@@ -78,10 +78,80 @@ nav {
   gap: 28px;
 }
 
+/* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .layout { grid-template-columns: 1fr; }
+  nav { padding: 12px 16px; }
+  .nav-right { gap: 8px; }
+  .btn { padding: 8px 14px; }
+  .btn-sm { padding: 6px 12px; }
+
+  .layout {
+    grid-template-columns: 1fr;
+    padding: 20px 14px;
+    gap: 18px;
+  }
   .sidebar { order: -1; }
-  nav { padding: 14px 18px; }
+
+  .post-card { padding: 14px 14px; gap: 12px; }
+
+  .filter-pills {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .filter-pills::-webkit-scrollbar { display: none; }
+  .pill { flex-shrink: 0; }
+
+  .modal { padding: 20px 18px; border-radius: 12px; }
+  .auth-modal { max-width: 100%; }
+  .report-modal { padding: 20px 18px; }
+
+  .form-actions { flex-direction: column-reverse; }
+  .form-actions .btn { width: 100%; justify-content: center; }
+
+  .toast {
+    bottom: 16px;
+    right: 12px;
+    left: 12px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  nav { padding: 10px 14px; }
+  .logo { font-size: 1.1rem; }
+
+  .layout { padding: 14px 10px; }
+
+  /* Prevent iOS input zoom */
+  input[type="text"],
+  input[type="password"],
+  textarea,
+  select,
+  .comment-textarea,
+  #search-input { font-size: 16px; }
+
+  .post-card { padding: 12px 10px; gap: 10px; }
+  .post-title { font-size: 0.95rem; }
+
+  .sort-tabs { gap: 0; }
+  .sort-tab { padding: 8px 12px; font-size: 0.82rem; }
+
+  .vote-col { min-width: 28px; }
+  .vote-btn { width: 24px; height: 24px; }
+
+  .comment-input-row { gap: 8px; }
+  .comment-avatar { width: 24px; height: 24px; font-size: 0.65rem; }
+
+  .modal { padding: 16px 14px; }
+  .modal-header { margin-bottom: 16px; }
+
+  .feed-header h1 { font-size: 1.1rem; }
+
+  .sidebar-card { padding: 16px; }
+  .image-upload-area { padding: 20px; }
 }
 
 /* ── FEED HEADER ── */
