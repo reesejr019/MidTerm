@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forum Creation — My Profile</title>
+  <link rel="stylesheet" href="css/forum.css" />
+  <link rel="stylesheet" href="css/profile.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="forum.html" class="logo">Forum <span>Creation</span></a>
+    <div class="nav-right" id="nav-right">
+      <!-- rendered by auth.js -->
+    </div>
+  </nav>
+
+  <!-- PROFILE CONTENT -->
+  <div class="profile-layout">
+
+    <!-- PROFILE HEADER CARD -->
+    <div class="profile-header-card">
+      <div class="profile-avatar" id="profile-avatar">?</div>
+      <div class="profile-header-info">
+        <div class="profile-username" id="profile-username"></div>
+        <div class="profile-joined" id="profile-joined"></div>
+        <div class="profile-stats-row">
+          <span class="profile-stat"><span id="stat-post-count">0</span> Posts</span>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm profile-edit-btn" id="edit-toggle-btn" onclick="enterEditMode()">
+        &#9998; Edit Profile
+      </button>
+    </div>
+
+    <!-- EDIT FORM (hidden by default) -->
+    <div class="profile-edit-card" id="edit-card" style="display:none;">
+      <h3>&#9998; Edit Profile</h3>
+
+      <div class="form-group">
+        <label for="edit-bio">About Me</label>
+        <textarea
+          id="edit-bio"
+          placeholder="Tell the community a bit about yourself..."
+          maxlength="300"
+        ></textarea>
+        <div class="char-count"><span id="bio-count">0</span>/300</div>
+      </div>
+
+      <div class="form-group">
+        <label>Interests</label>
+        <div class="tag-input-wrap">
+          <div class="tag-list" id="tag-list"></div>
+          <input
+            type="text"
+            id="tag-input"
+            placeholder="Type an interest and press Enter..."
+            maxlength="30"
+            onkeydown="handleTagKeydown(event)"
+          />
+        </div>
+        <div style="font-size:0.72rem; color:var(--muted); margin-top:6px;">Press Enter to add · Max 10 interests</div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="cancelEdit()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveProfileChanges()">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- MAIN GRID: BIO + POSTS -->
+    <div class="profile-grid">
+
+      <!-- LEFT: ABOUT -->
+      <aside class="profile-about-card" id="about-card">
+        <h3>&#128100; About</h3>
+        <p class="about-bio" id="about-bio"></p>
+
+        <div class="interests-section" id="interests-section" style="display:none;">
+          <div class="interests-label">Interests</div>
+          <div class="interests-tags" id="interests-display"></div>
+        </div>
+      </aside>
+
+      <!-- RIGHT: MY POSTS -->
+      <main>
+        <div class="feed-header">
+          <h2>&#128172; My Posts</h2>
+          <span id="my-post-count" style="color:var(--muted); font-size:0.85rem;">0 posts</span>
+        </div>
+        <div id="my-posts-feed">
+          <!-- rendered by profile.js -->
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/profile.js"></script>
+
+</body>
+</html>

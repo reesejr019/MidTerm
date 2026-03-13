@@ -1,6 +1,7 @@
 // ── AUTH — localStorage-based (frontend demo) ──
-const AUTH_USERS_KEY = 'fc_users';
-const AUTH_SESSION_KEY = 'fc_session';
+const AUTH_USERS_KEY    = 'fc_users';
+const AUTH_SESSION_KEY  = 'fc_session';
+const AUTH_PROFILES_KEY = 'fc_profiles';
 
 function escapeHTML(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -26,12 +27,30 @@ function clearSession() {
   localStorage.removeItem(AUTH_SESSION_KEY);
 }
 
+// ── PROFILE DATA ──
+function getProfile(username) {
+  const profiles = JSON.parse(localStorage.getItem(AUTH_PROFILES_KEY) || '{}');
+  return profiles[username] || { bio: '', interests: [] };
+}
+
+function saveProfile(username, data) {
+  const profiles = JSON.parse(localStorage.getItem(AUTH_PROFILES_KEY) || '{}');
+  profiles[username] = data;
+  localStorage.setItem(AUTH_PROFILES_KEY, JSON.stringify(profiles));
+}
+
+function getUserJoinedAt(username) {
+  const users = getUsers();
+  const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+  return user ? (user.joinedAt || null) : null;
+}
+
 function signup(username, password) {
   const users = getUsers();
   if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
     return { ok: false, error: 'That username is already taken.' };
   }
-  users.push({ username, password });
+  users.push({ username, password, joinedAt: Date.now() });
   saveUsers(users);
   setSession(username);
   return { ok: true };
@@ -48,6 +67,11 @@ function login(username, password) {
 
 function logout() {
   clearSession();
+  // If renderFeed isn't available (not on forum page), redirect there instead
+  if (typeof renderFeed !== 'function') {
+    window.location.href = 'forum.html';
+    return;
+  }
   updateNavAuth();
   renderFeed();
   showToast('You have been logged out.');
@@ -133,11 +157,16 @@ function handleAuthSubmit(e) {
 function updateNavAuth() {
   const user = getCurrentUser();
   const navRight = document.getElementById('nav-right');
+  // Detect if we're on the forum page (has the create-post modal)
+  const onForum = !!document.getElementById('overlay');
+  const createPostBtn = onForum
+    ? `<button class="btn btn-primary btn-sm" onclick="openModal()">&#43; Create Post</button>`
+    : `<a href="forum.html" class="btn btn-primary btn-sm">&#43; Create Post</a>`;
   if (user) {
     navRight.innerHTML = `
-      <span class="nav-username">u/${escapeHTML(user)}</span>
+      <a href="profile.html" class="nav-username">u/${escapeHTML(user)}</a>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Log Out</button>
-      <button class="btn btn-primary btn-sm" onclick="openModal()">&#43; Create Post</button>
+      ${createPostBtn}
     `;
   } else {
     navRight.innerHTML = `
