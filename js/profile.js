@@ -140,6 +140,7 @@ function cancelEdit() {
   document.getElementById('edit-card').style.display       = 'none';
   document.getElementById('edit-toggle-btn').style.display = '';
   document.getElementById('tag-input').value = '';
+  hideDeleteConfirm();
 }
 
 async function saveProfileChanges() {
