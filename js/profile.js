@@ -1,9 +1,9 @@
 // ── AUTH GATE — redirect if not logged in ──
-(function() {
-  if (!getCurrentUser()) {
-    window.location.href = 'forum.html';
-  }
-})();
+if (!getCurrentUser()) {
+  window.location.href = 'forum.html';
+  // Stop all further script execution so nothing below runs before the redirect
+  throw new Error('Not authenticated — redirecting to forum.');
+}
 
 // ── TOAST (standalone — forum.js not loaded here) ──
 function showToast(msg) {

@@ -649,6 +649,7 @@ mark {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--accent);
+  text-decoration: none;
 }
 
 /* password input inherits the shared input rule */
