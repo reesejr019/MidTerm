@@ -1,53 +1,55 @@
-// ── AUTH GATE — redirect if not logged in ──
-if (!getCurrentUser()) {
-  window.location.href = 'forum.html';
-  // Stop all further script execution so nothing below runs before the redirect
-  throw new Error('Not authenticated — redirecting to forum.');
-}
+// ── AUTH GATE — wait for Supabase session, then check login ──
+onAuthReady(async () => {
+  if (!getCurrentUser()) {
+    window.location.href = 'forum.html';
+    return;
+  }
+  await initProfile();
+});
 
-// ── TOAST (standalone — forum.js not loaded here) ──
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+// ── STATE ──
+let profileData   = { bio: '', interests: [] };
+let editInterests = [];
+
+// ── INIT ──
+async function initProfile() {
+  const user     = getCurrentUser();
+  profileData    = await getProfile(user.id);
+  const joinedAt = await getUserJoinedAt(user.id);
+  const myPosts  = await loadMyPosts();
+
+  document.getElementById('profile-avatar').textContent   = user.username.charAt(0).toUpperCase();
+  document.getElementById('profile-username').textContent = 'u/' + user.username;
+  document.getElementById('profile-joined').textContent   = formatJoinDate(joinedAt);
+  document.getElementById('stat-post-count').textContent  = myPosts.length;
+
+  renderAbout();
+  renderMyPosts(myPosts);
 }
 
 // ── HELPERS ──
-function timeAgo(ts) {
-  const diff = Math.floor((Date.now() - ts) / 1000);
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-  return Math.floor(diff / 86400) + 'd ago';
-}
-
 function formatJoinDate(ts) {
   if (!ts) return 'Member';
   return 'Joined ' + new Date(ts).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
-// ── STATE ──
-const currentUser = getCurrentUser();
-let profileData   = getProfile(currentUser);  // { bio, interests[] }
-let editInterests = [];                        // working copy during edit
-
-// ── RENDER PROFILE ──
-function renderProfile() {
-  // Avatar (first letter of username)
-  document.getElementById('profile-avatar').textContent = currentUser.charAt(0).toUpperCase();
-
-  // Username + join date
-  document.getElementById('profile-username').textContent = 'u/' + currentUser;
-  document.getElementById('profile-joined').textContent = formatJoinDate(getUserJoinedAt(currentUser));
-
-  // Post count
-  const posts = JSON.parse(localStorage.getItem('fc_posts') || '[]');
-  const myPosts = posts.filter(p => p.author === currentUser);
-  document.getElementById('stat-post-count').textContent = myPosts.length;
-
-  renderAbout();
-  renderMyPosts(myPosts);
+// ── LOAD MY POSTS FROM DB ──
+async function loadMyPosts() {
+  const user = getCurrentUser();
+  const { data } = await sb
+    .from('posts')
+    .select('*')
+    .eq('author_id', user.id)
+    .order('created_at', { ascending: false });
+  return (data || []).map(row => ({
+    id:        row.id,
+    title:     row.title,
+    body:      row.body || '',
+    image:     row.image || '',
+    forum:     row.forum,
+    score:     row.score,
+    createdAt: new Date(row.created_at).getTime()
+  }));
 }
 
 // ── ABOUT SECTION ──
@@ -75,13 +77,12 @@ function renderAbout() {
 
 // ── MY POSTS ──
 function renderMyPosts(myPosts) {
-  const feed = document.getElementById('my-posts-feed');
+  const feed    = document.getElementById('my-posts-feed');
   const countEl = document.getElementById('my-post-count');
-  const sorted = myPosts.slice().sort((a, b) => b.createdAt - a.createdAt);
 
-  countEl.textContent = sorted.length + (sorted.length === 1 ? ' post' : ' posts');
+  countEl.textContent = myPosts.length + (myPosts.length === 1 ? ' post' : ' posts');
 
-  if (sorted.length === 0) {
+  if (myPosts.length === 0) {
     feed.innerHTML = `
       <div class="no-posts">
         <div class="icon">&#128172;</div>
@@ -91,7 +92,7 @@ function renderMyPosts(myPosts) {
     return;
   }
 
-  feed.innerHTML = sorted.map(post => `
+  feed.innerHTML = myPosts.map(post => `
     <div class="post-card">
       <div class="vote-col">
         <span style="font-size:0.7rem; color:var(--muted);">&#9650;</span>
@@ -105,7 +106,7 @@ function renderMyPosts(myPosts) {
         </div>
         <div class="post-title">${escapeHTML(post.title)}</div>
         ${post.image ? `<img class="post-image" src="${post.image}" alt="Post image" />` : ''}
-        ${post.body ? `<div class="post-text">${escapeHTML(post.body)}</div>` : ''}
+        ${post.body  ? `<div class="post-text">${escapeHTML(post.body)}</div>` : ''}
         <div class="post-footer">
           <a href="forum.html" class="post-action" style="text-decoration:none;">&#128172; View in Forum</a>
           <button class="post-action delete" onclick="deleteMyPost(${post.id})">&#128465; Delete</button>
@@ -115,37 +116,36 @@ function renderMyPosts(myPosts) {
   `).join('');
 }
 
-function deleteMyPost(id) {
-  let posts = JSON.parse(localStorage.getItem('fc_posts') || '[]');
-  posts = posts.filter(p => p.id !== id);
-  localStorage.setItem('fc_posts', JSON.stringify(posts));
-  renderProfile();
+async function deleteMyPost(id) {
+  await sb.from('posts').delete().eq('id', id);
+  const myPosts = await loadMyPosts();
+  document.getElementById('stat-post-count').textContent = myPosts.length;
+  renderMyPosts(myPosts);
   showToast('Post deleted.');
 }
 
 // ── EDIT MODE ──
 function enterEditMode() {
-  // Populate edit form with current values
-  document.getElementById('edit-bio').value = profileData.bio || '';
-  document.getElementById('bio-count').textContent = (profileData.bio || '').length;
+  document.getElementById('edit-bio').value          = profileData.bio || '';
+  document.getElementById('bio-count').textContent   = (profileData.bio || '').length;
   editInterests = profileData.interests ? [...profileData.interests] : [];
   renderTagList();
 
-  document.getElementById('edit-card').style.display = 'block';
+  document.getElementById('edit-card').style.display       = 'block';
   document.getElementById('edit-toggle-btn').style.display = 'none';
   document.getElementById('edit-bio').focus();
 }
 
 function cancelEdit() {
-  document.getElementById('edit-card').style.display = 'none';
+  document.getElementById('edit-card').style.display       = 'none';
   document.getElementById('edit-toggle-btn').style.display = '';
   document.getElementById('tag-input').value = '';
 }
 
-function saveProfileChanges() {
-  const bio = document.getElementById('edit-bio').value.trim();
+async function saveProfileChanges() {
+  const bio  = document.getElementById('edit-bio').value.trim();
   profileData = { bio, interests: [...editInterests] };
-  saveProfile(currentUser, profileData);
+  await saveProfile(getCurrentUser().id, profileData);
   cancelEdit();
   renderAbout();
   showToast('Profile saved!');
@@ -165,10 +165,7 @@ function renderTagList() {
 function addTag(value) {
   const tag = value.trim().replace(/,+$/, '').trim();
   if (!tag) return;
-  if (editInterests.length >= 10) {
-    showToast('Maximum 10 interests allowed.');
-    return;
-  }
+  if (editInterests.length >= 10) { showToast('Maximum 10 interests allowed.'); return; }
   if (editInterests.some(t => t.toLowerCase() === tag.toLowerCase())) {
     showToast('That interest is already added.');
     return;
@@ -194,7 +191,3 @@ function handleTagKeydown(e) {
 document.getElementById('edit-bio').addEventListener('input', function() {
   document.getElementById('bio-count').textContent = this.value.length;
 });
-
-// ── INIT ──
-updateNavAuth();
-renderProfile();
