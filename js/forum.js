@@ -232,8 +232,7 @@ function _renderFeedDOM() {
         <div class="post-footer">
           <button class="post-action comment ${expandedComments.has(post.id) ? 'open' : ''}"
             id="comment-btn-${post.id}" onclick="toggleComments(${post.id})">
-            &#128172; ${post.commentCount} Comment${post.commentCount !== 1 ? 's' : ''}
-            <span class="comment-chevron">&#9662;</span>
+            &#128172; ${post.commentCount} <span class="comment-chevron">&#9662;</span>
           </button>
           <button class="post-action report ${post.reported ? 'active' : ''}"
             onclick="openReportModal(${post.id})"
@@ -561,7 +560,7 @@ function renderCommentSection(postId) {
   const btn = document.getElementById(`comment-btn-${postId}`);
   if (btn) {
     const count = post.commentCount || 0;
-    btn.innerHTML = `&#128172; ${count} Comment${count !== 1 ? 's' : ''} <span class="comment-chevron">&#9662;</span>`;
+    btn.innerHTML = `&#128172; ${count} <span class="comment-chevron">&#9662;</span>`;
   }
 }
 
