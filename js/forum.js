@@ -277,13 +277,10 @@ async function submitPost(e) {
     image:           selectedImageDataURL || '',
     author_id:       user.id,
     author_username: user.username,
-    score:           1
+    score:           0
   }).select().single();
 
   if (error || !newRow) { showToast('Error creating post. Please try again.'); return; }
-
-  // Auto-upvote own post
-  await sb.from('votes').insert({ post_id: newRow.id, user_id: user.id, value: 1 });
 
   posts.unshift({
     id:           newRow.id,
@@ -293,8 +290,8 @@ async function submitPost(e) {
     forum:        newRow.forum,
     author:       newRow.author_username,
     author_id:    newRow.author_id,
-    score:        1,
-    userVote:     1,
+    score:        0,
+    userVote:     0,
     createdAt:    new Date(newRow.created_at).getTime(),
     comments:     [],
     commentCount: 0,
