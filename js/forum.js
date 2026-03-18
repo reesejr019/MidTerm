@@ -402,22 +402,24 @@ async function vote(id, dir) {
 
   const user        = getCurrentUser();
   const currentVote = post.userVote || 0;
-  let newScore = post.score;
   let newVote;
 
   if (currentVote === dir) {
     // Toggle vote off
-    newScore -= dir;
-    newVote   = 0;
+    newVote = 0;
     await sb.from('votes').delete().eq('post_id', id).eq('user_id', user.id);
   } else {
-    newScore = newScore - currentVote + dir;
-    newVote  = dir;
+    newVote = dir;
     await sb.from('votes').upsert({ post_id: id, user_id: user.id, value: dir });
   }
 
+  // Recalculate score from the votes table (ground truth) so stale
+  // client-side cache never corrupts the score for concurrent voters.
+  const { data: allVotes } = await sb.from('votes').select('value').eq('post_id', id);
+  const newScore = (allVotes || []).reduce((sum, v) => sum + v.value, 0);
+
   await sb.from('posts').update({ score: newScore }).eq('id', id);
-  post.score   = newScore;
+  post.score    = newScore;
   post.userVote = newVote;
   _renderFeedDOM();
 }
