@@ -37,15 +37,15 @@
   <!-- STATS -->
   <div class="stats">
     <div class="stat">
-      <div class="stat-num">10<span>K+</span></div>
+      <div class="stat-num" id="stat-idx-members">—</div>
       <div class="stat-label">Active Members</div>
     </div>
     <div class="stat">
-      <div class="stat-num">50<span>K+</span></div>
+      <div class="stat-num" id="stat-idx-posts">—</div>
       <div class="stat-label">Posts & Threads</div>
     </div>
     <div class="stat">
-      <div class="stat-num">200<span>+</span></div>
+      <div class="stat-num" id="stat-idx-forums">—</div>
       <div class="stat-label">Topics & Forums</div>
     </div>
     <div class="stat">
@@ -179,5 +179,26 @@
     <p style="color:var(--muted); font-size:0.82rem;">&#169; 2026 Forum Creation</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-client.js"></script>
+  <script>
+    (async function loadIndexStats() {
+      const [membersRes, postsRes, forumsRes] = await Promise.all([
+        sb.from('profiles').select('*', { count: 'exact', head: true }),
+        sb.from('posts').select('*', { count: 'exact', head: true }),
+        sb.from('posts').select('forum')
+      ]);
+
+      const members = membersRes.count ?? 0;
+      const postsCount = postsRes.count ?? 0;
+      const forums = forumsRes.data
+        ? new Set(forumsRes.data.map(r => r.forum)).size
+        : 0;
+
+      document.getElementById('stat-idx-members').textContent = members.toLocaleString();
+      document.getElementById('stat-idx-posts').textContent = postsCount.toLocaleString();
+      document.getElementById('stat-idx-forums').textContent = forums.toLocaleString();
+    })();
+  </script>
 </body>
 </html>

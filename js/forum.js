@@ -162,6 +162,13 @@ async function loadPostsFromDB() {
 async function renderFeed() {
   await loadPostsFromDB();
   _renderFeedDOM();
+  loadMemberCount();
+}
+
+async function loadMemberCount() {
+  const { count } = await sb.from('profiles').select('*', { count: 'exact', head: true });
+  const el = document.getElementById('stat-members');
+  if (el && count !== null) el.textContent = count.toLocaleString();
 }
 
 function _renderFeedDOM() {
