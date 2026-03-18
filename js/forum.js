@@ -216,7 +216,7 @@ function _renderFeedDOM() {
       </div>
       <div class="post-body">
         <div class="post-meta">
-          <span class="forum-tag">r/${escapeHTML(post.forum)}</span>
+          <span class="forum-tag">${escapeHTML(post.forum)}</span>
           &nbsp;·&nbsp; Posted by <strong>${escapeHTML(post.author)}</strong>
           &nbsp;·&nbsp; ${timeAgo(post.createdAt)}
         </div>
