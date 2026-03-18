@@ -71,10 +71,46 @@ function clearSearch() {
 
 function setFilter(forum, el) {
   activeFilter = forum;
+
+  // Sync filter pills
   document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
+  if (el) {
+    el.classList.add('active');
+  } else {
+    document.querySelectorAll('.pill').forEach(p => {
+      if (p.textContent.trim().replace(/&amp;/g, '&') === forum ||
+          p.textContent.trim() === forum) {
+        p.classList.add('active');
+      }
+    });
+  }
+
+  // Sync dropdown button active states
+  document.querySelectorAll('#cat-dropdown button').forEach(b => {
+    b.classList.toggle('active', b.dataset.forum === forum);
+  });
+
+  closeCatDropdown();
   _renderFeedDOM();
 }
+
+function toggleCatDropdown() {
+  const btn = document.getElementById('nav-cat-btn');
+  const dropdown = document.getElementById('cat-dropdown');
+  btn.classList.toggle('open');
+  dropdown.classList.toggle('open');
+}
+
+function closeCatDropdown() {
+  document.getElementById('nav-cat-btn')?.classList.remove('open');
+  document.getElementById('cat-dropdown')?.classList.remove('open');
+}
+
+document.addEventListener('click', e => {
+  if (!document.getElementById('nav-categories')?.contains(e.target)) {
+    closeCatDropdown();
+  }
+});
 
 function setSort(sort, el) {
   activeSort = sort;
