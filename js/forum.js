@@ -367,10 +367,15 @@ async function vote(id, dir) {
   let newVote;
 
   if (currentVote === dir) {
-    // Toggle vote off
+    // Same direction: toggle off
+    newVote = 0;
+    await sb.from('votes').delete().eq('post_id', id).eq('user_id', user.id);
+  } else if (currentVote !== 0) {
+    // Opposite direction: cancel current vote (score changes by exactly 1, not 2)
     newVote = 0;
     await sb.from('votes').delete().eq('post_id', id).eq('user_id', user.id);
   } else {
+    // No prior vote: apply new vote
     newVote = dir;
     await sb.from('votes').upsert({ post_id: id, user_id: user.id, value: dir });
   }
