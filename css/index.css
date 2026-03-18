@@ -424,8 +424,40 @@ footer p { color: var(--muted); font-size: 0.82rem; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 640px) {
-  nav { padding: 16px 20px; }
-  nav ul { gap: 16px; }
-  footer { padding: 24px 20px; }
-  .stats { gap: 30px; }
+  /* Nav: hide non-essential links, keep just logo + Enter Forum */
+  nav { padding: 14px 20px; }
+  nav ul li:not(:last-child) { display: none; }
+  nav ul { gap: 0; }
+
+  /* Hero: tighten top padding for fixed nav on small screens */
+  .hero { padding: 100px 20px 60px; }
+  .hero p { font-size: 1rem; }
+  .hero-btns { flex-direction: column; align-items: center; gap: 10px; }
+  .btn { width: 100%; max-width: 280px; justify-content: center; }
+
+  /* Stats: 2×2 grid feel */
+  .stats { gap: 24px 40px; padding: 32px 20px; }
+  .stat-num { font-size: 1.6rem; }
+
+  /* Section padding */
+  .section { padding: 64px 20px; }
+  .features-grid { gap: 14px; }
+
+  /* Preview mockup */
+  .preview-section { padding: 60px 16px; }
+  .mockup-body { padding: 16px; gap: 10px; }
+  .mock-post { padding: 12px 14px; }
+
+  /* CTA */
+  .cta-section { padding: 72px 20px; }
+  .cta-section a.btn { width: 100%; max-width: 280px; justify-content: center; }
+
+  /* Footer: stack and center */
+  footer {
+    padding: 24px 20px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+  }
 }
