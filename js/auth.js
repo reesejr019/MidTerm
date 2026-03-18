@@ -206,7 +206,7 @@ function updateNavAuth() {
     : `<a href="forum.html" class="btn btn-primary btn-sm">&#43; Create Post</a>`;
   if (user) {
     navRight.innerHTML = `
-      <a href="profile.html" class="nav-username">u/${escapeHTML(user.username)}</a>
+      <a href="profile.html" class="nav-username">${escapeHTML(user.username)}</a>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Log Out</button>
       ${createPostBtn}
     `;

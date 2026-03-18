@@ -19,7 +19,7 @@ async function initProfile() {
   const myPosts  = await loadMyPosts();
 
   document.getElementById('profile-avatar').textContent   = user.username.charAt(0).toUpperCase();
-  document.getElementById('profile-username').textContent = 'u/' + user.username;
+  document.getElementById('profile-username').textContent = user.username;
   document.getElementById('profile-joined').textContent   = formatJoinDate(joinedAt);
   document.getElementById('stat-post-count').textContent  = myPosts.length;
 
@@ -101,7 +101,7 @@ function renderMyPosts(myPosts) {
       </div>
       <div class="post-body">
         <div class="post-meta">
-          <span class="forum-tag">r/${escapeHTML(post.forum)}</span>
+          <span class="forum-tag">${escapeHTML(post.forum)}</span>
           &nbsp;·&nbsp; ${timeAgo(post.createdAt)}
         </div>
         <div class="post-title">${escapeHTML(post.title)}</div>
