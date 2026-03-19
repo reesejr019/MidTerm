@@ -803,13 +803,15 @@ async function submitComment(postId, parentId = null) {
 
   isSubmittingComment = true;
   const user = getCurrentUser();
-  const { data: newComment, error } = await sb.from('comments').insert({
+  const insertPayload = {
     post_id:         postId,
-    parent_id:       parentId,
     author_id:       user.id,
     author_username: user.username,
     body
-  }).select().single();
+  };
+  if (parentId !== null) insertPayload.parent_id = parentId;
+
+  const { data: newComment, error } = await sb.from('comments').insert(insertPayload).select().single();
 
   isSubmittingComment = false;
   if (error || !newComment) { showToast(`Error posting ${parentId ? 'reply' : 'comment'}. Please try again.`); return; }
