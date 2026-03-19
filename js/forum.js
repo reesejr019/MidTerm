@@ -55,6 +55,7 @@ let activeSort = 'hot';
 let expandedComments = new Set();
 
 // ── PAGINATION STATE ──
+let isSubmittingComment = false;
 const PAGE_SIZE      = 15;
 let currentPage      = 0;
 let hasMore          = true;
@@ -698,9 +699,9 @@ function renderCommentNode(node, postId) {
           : ''}
       </div>
       <div class="comment-body">${escapeHTML(node.body)}</div>
-      <div class="comment-actions">
-        ${user ? `<button class="comment-reply-btn" onclick="toggleReplyForm(${postId}, ${node.id})"><i data-lucide="corner-down-right"></i> Reply</button>` : ''}
-      </div>
+      ${user ? `<div class="comment-actions">
+        <button class="comment-reply-btn" onclick="toggleReplyForm(${postId}, ${node.id})"><i data-lucide="corner-down-right"></i> Reply</button>
+      </div>` : ''}
       <div class="reply-form-wrap" id="reply-form-${node.id}" style="display:none;">
         <div class="comment-input-row">
           <div class="comment-avatar">${user ? escapeHTML(user.username.charAt(0).toUpperCase()) : ''}</div>
@@ -790,6 +791,7 @@ function renderCommentSection(postId) {
 }
 
 async function submitComment(postId, parentId = null) {
+  if (isSubmittingComment) return;
   if (!getCurrentUser()) { openAuthModal('login'); return; }
   const inputId = parentId !== null ? `reply-input-${parentId}` : `comment-input-${postId}`;
   const input   = document.getElementById(inputId);
@@ -799,6 +801,7 @@ async function submitComment(postId, parentId = null) {
   const flagged = moderateText(body);
   if (flagged) { showToast(`${parentId ? 'Reply' : 'Comment'} blocked: "${flagged}" is not allowed.`); return; }
 
+  isSubmittingComment = true;
   const user = getCurrentUser();
   const { data: newComment, error } = await sb.from('comments').insert({
     post_id:         postId,
@@ -808,6 +811,7 @@ async function submitComment(postId, parentId = null) {
     body
   }).select().single();
 
+  isSubmittingComment = false;
   if (error || !newComment) { showToast(`Error posting ${parentId ? 'reply' : 'comment'}. Please try again.`); return; }
 
   // Reload all comments from DB so the tree is accurate
