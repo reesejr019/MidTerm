@@ -985,3 +985,17 @@ input[type="password"]:focus { border-color: var(--accent); }
 
 .comment-login-prompt a { color: var(--accent); font-weight: 600; text-decoration: none; }
 .comment-login-prompt a:hover { text-decoration: underline; }
+
+/* ── LUCIDE ICONS ── */
+.lucide {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  stroke-width: 2;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.vote-btn .lucide { width: 12px; height: 12px; }
+.search-icon .lucide { width: 16px; height: 16px; }
+.comment-chevron .lucide { width: 10px; height: 10px; }
+.trending-badge .lucide { width: 12px; height: 12px; }

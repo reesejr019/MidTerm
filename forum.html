@@ -29,14 +29,14 @@
 
       <!-- SORT TABS -->
       <div class="sort-tabs">
-        <button class="sort-tab active" onclick="setSort('hot', this)">&#128293; Hot</button>
-        <button class="sort-tab" onclick="setSort('new', this)">&#10024; New</button>
-        <button class="sort-tab" onclick="setSort('top', this)">&#11014; Top</button>
+        <button class="sort-tab active" onclick="setSort('hot', this)"><i data-lucide="flame"></i> Hot</button>
+        <button class="sort-tab" onclick="setSort('new', this)"><i data-lucide="sparkles"></i> New</button>
+        <button class="sort-tab" onclick="setSort('top', this)"><i data-lucide="arrow-up"></i> Top</button>
       </div>
 
       <!-- SEARCH -->
       <div class="search-wrap">
-        <span class="search-icon">&#128269;</span>
+        <span class="search-icon"><i data-lucide="search"></i></span>
         <input
           type="text"
           id="search-input"
@@ -45,7 +45,7 @@
           onkeydown="if(event.key==='Escape') clearSearch()"
           autocomplete="off"
         />
-        <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear search">&#10005;</button>
+        <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear search"><i data-lucide="x"></i></button>
       </div>
 
       <!-- FORUM FILTER PILLS -->
@@ -78,25 +78,25 @@
     <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-card">
-        <h3>&#127758; About Forum Creation</h3>
+        <h3><i data-lucide="info"></i> About Forum Creation</h3>
         <p>A site where users can post and share their ideas with others. Join the conversation today.</p>
-        <button class="btn btn-primary" style="width:100%;" onclick="openModal()">&#43; Create Post</button>
+        <button class="btn btn-primary" style="width:100%;" onclick="openModal()"><i data-lucide="plus"></i> Create Post</button>
       </div>
 
       <div class="sidebar-card">
-        <h3>&#128202; Community Stats</h3>
+        <h3><i data-lucide="bar-chart-2"></i> Community Stats</h3>
         <div class="sidebar-stat"><span>Total Posts</span><span id="stat-posts">0</span></div>
         <div class="sidebar-stat"><span>Total Votes</span><span id="stat-votes">0</span></div>
         <div class="sidebar-stat"><span>Members</span><span id="stat-members">—</span></div>
       </div>
 
       <div class="sidebar-card">
-        <h3>&#128196; Site Links</h3>
+        <h3><i data-lucide="link-2"></i> Site Links</h3>
         <div class="sidebar-links">
-          <a href="rules.html" class="sidebar-link">&#128203; Rules</a>
-          <a href="privacy.html" class="sidebar-link">&#128274; Privacy Policy</a>
-          <a href="user-agreement.html" class="sidebar-link">&#128196; User Agreement</a>
-          <a href="accessibility.html" class="sidebar-link">&#9855; Accessibility</a>
+          <a href="rules.html" class="sidebar-link"><i data-lucide="shield"></i> Rules</a>
+          <a href="privacy.html" class="sidebar-link"><i data-lucide="lock"></i> Privacy Policy</a>
+          <a href="user-agreement.html" class="sidebar-link"><i data-lucide="file-text"></i> User Agreement</a>
+          <a href="accessibility.html" class="sidebar-link"><i data-lucide="accessibility"></i> Accessibility</a>
         </div>
       </div>
 
@@ -109,7 +109,7 @@
     <div class="modal auth-modal">
       <div class="modal-header">
         <h2 id="auth-modal-title">Log In</h2>
-        <button class="close-btn" onclick="closeAuthModal()">&#10005;</button>
+        <button class="close-btn" onclick="closeAuthModal()"><i data-lucide="x"></i></button>
       </div>
 
       <div class="auth-tabs">
@@ -160,8 +160,8 @@
   <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
     <div class="modal">
       <div class="modal-header">
-        <h2>&#128172; Create a Post</h2>
-        <button class="close-btn" onclick="closeModal()">&#10005;</button>
+        <h2><i data-lucide="message-square"></i> Create a Post</h2>
+        <button class="close-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
       </div>
 
       <form id="post-form" onsubmit="submitPost(event)">
@@ -224,7 +224,7 @@
           >
             <input type="file" id="img-input" accept="image/*" onchange="handleImageSelect(event)" />
             <div id="upload-placeholder">
-              <div class="upload-icon">&#128444;</div>
+              <div class="upload-icon"><i data-lucide="image"></i></div>
               <div class="upload-label">
                 Drag & drop or <span>browse</span> to upload an image
               </div>
@@ -238,7 +238,7 @@
         </div>
 
         <div class="mod-error" id="mod-error">
-          <strong>&#128737; Post blocked by moderation</strong>
+          <strong><i data-lucide="shield-alert"></i> Post blocked by moderation</strong>
           <span id="mod-error-msg"></span>
         </div>
 
@@ -255,31 +255,31 @@
   <div class="report-overlay" id="report-overlay" onclick="handleReportOverlayClick(event)">
     <div class="report-modal">
       <div class="modal-header">
-        <h2>&#9873; Report Post</h2>
-        <button class="close-btn" onclick="closeReportModal()">&#10005;</button>
+        <h2><i data-lucide="flag"></i> Report Post</h2>
+        <button class="close-btn" onclick="closeReportModal()"><i data-lucide="x"></i></button>
       </div>
       <p style="font-size:0.85rem; color:var(--muted);">Why are you reporting this post? We'll review it promptly.</p>
 
       <div class="report-reasons" id="report-reasons">
         <label class="reason-option">
           <input type="radio" name="report-reason" value="Spam" />
-          <span class="reason-label">&#128286; Spam or misleading</span>
+          <span class="reason-label"><i data-lucide="alert-triangle"></i> Spam or misleading</span>
         </label>
         <label class="reason-option">
           <input type="radio" name="report-reason" value="Harassment" />
-          <span class="reason-label">&#128545; Harassment or bullying</span>
+          <span class="reason-label"><i data-lucide="user-x"></i> Harassment or bullying</span>
         </label>
         <label class="reason-option">
           <input type="radio" name="report-reason" value="Inappropriate content" />
-          <span class="reason-label">&#128683; Inappropriate or offensive content</span>
+          <span class="reason-label"><i data-lucide="ban"></i> Inappropriate or offensive content</span>
         </label>
         <label class="reason-option">
           <input type="radio" name="report-reason" value="Misinformation" />
-          <span class="reason-label">&#10060; Misinformation or false claims</span>
+          <span class="reason-label"><i data-lucide="x-circle"></i> Misinformation or false claims</span>
         </label>
         <label class="reason-option">
           <input type="radio" name="report-reason" value="Off-topic" />
-          <span class="reason-label">&#128260; Off-topic or irrelevant</span>
+          <span class="reason-label"><i data-lucide="shuffle"></i> Off-topic or irrelevant</span>
         </label>
         <label class="reason-option">
           <input type="radio" name="report-reason" value="Other" />
@@ -308,10 +308,12 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-client.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/forum.js"></script>
+  <script>if (typeof lucide !== 'undefined') lucide.createIcons();</script>
 
 </body>
 </html>

@@ -185,10 +185,11 @@ function _renderFeedDOM() {
     count.textContent = '0 posts';
     feed.innerHTML = `
       <div class="empty-state">
-        <div class="icon">&#128172;</div>
+        <div class="icon"><i data-lucide="message-square"></i></div>
         <h3>No posts yet</h3>
         <p>Be the first to share something with the community.</p>
       </div>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     return;
   }
 
@@ -198,10 +199,11 @@ function _renderFeedDOM() {
   if (filtered.length === 0) {
     feed.innerHTML = `
       <div class="no-results">
-        <div class="icon">&#128270;</div>
+        <div class="icon"><i data-lucide="search"></i></div>
         <h3>No results found</h3>
         <p>Try different keywords or clear the search filter.</p>
       </div>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     return;
   }
 
@@ -210,10 +212,10 @@ function _renderFeedDOM() {
     <div class="post-card" id="post-${post.id}">
       <div class="vote-col">
         <button class="vote-btn ${post.userVote === 1 ? 'active-up' : ''}"
-          onclick="vote(${post.id}, 1)" title="Upvote">&#9650;</button>
+          onclick="vote(${post.id}, 1)" title="Upvote"><i data-lucide="chevron-up"></i></button>
         <span class="vote-score">${post.score}</span>
         <button class="vote-btn ${post.userVote === -1 ? 'active-down' : ''}"
-          onclick="vote(${post.id}, -1)" title="Downvote">&#9660;</button>
+          onclick="vote(${post.id}, -1)" title="Downvote"><i data-lucide="chevron-down"></i></button>
       </div>
       <div class="post-body">
         <div class="post-meta">
@@ -222,26 +224,26 @@ function _renderFeedDOM() {
           &nbsp;·&nbsp; ${timeAgo(post.createdAt)}
         </div>
         <div class="post-title">${highlight(post.title, searchQuery)}</div>
-        ${activeSort === 'hot' && isTrending(post) ? `<div class="trending-badge">&#128293; Trending</div>` : ''}
+        ${activeSort === 'hot' && isTrending(post) ? `<div class="trending-badge"><i data-lucide="trending-up"></i> Trending</div>` : ''}
         ${post.reported ? `
         <div class="reported-banner">
-          &#9888; Reported &nbsp;&middot;&nbsp; ${escapeHTML(post.reportReason)}
+          <i data-lucide="alert-triangle"></i> Reported &nbsp;&middot;&nbsp; ${escapeHTML(post.reportReason)}
         </div>` : ''}
         ${post.image ? `<img class="post-image" src="${post.image}" alt="Post image" loading="lazy" decoding="async" />` : ''}
         ${post.body ? `<div class="post-text">${highlight(post.body, searchQuery)}</div>` : ''}
         <div class="post-footer">
           <button class="post-action comment ${expandedComments.has(post.id) ? 'open' : ''}"
             id="comment-btn-${post.id}" onclick="toggleComments(${post.id})">
-            &#128172; ${post.commentCount} <span class="comment-chevron">&#9662;</span>
+            <i data-lucide="message-square"></i> ${post.commentCount} <span class="comment-chevron"><i data-lucide="chevron-down"></i></span>
           </button>
           <button class="post-action report ${post.reported ? 'active' : ''}"
             onclick="openReportModal(${post.id})"
             title="${post.reported ? 'Already reported' : 'Report post'}">
-            &#9873; ${post.reported ? 'Reported' : 'Report'}
+            <i data-lucide="flag"></i> ${post.reported ? 'Reported' : 'Report'}
           </button>
           ${user && post.author_id === user.id ? `
           <button class="post-action delete" onclick="deletePost(${post.id})">
-            &#128465; Delete
+            <i data-lucide="trash-2"></i> Delete
           </button>` : ''}
         </div>
         <div class="comment-section" id="comments-${post.id}"
@@ -251,6 +253,7 @@ function _renderFeedDOM() {
       </div>
     </div>
   `).join('');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 // ── CREATE POST ──
@@ -551,7 +554,7 @@ function buildCommentSectionInner(post) {
           <strong class="comment-author">${escapeHTML(c.author)}</strong>
           <span class="comment-time">${timeAgo(c.createdAt)}</span>
           ${user && c.author_id === user.id
-            ? `<button class="comment-delete" onclick="deleteComment(${post.id}, ${c.id})" title="Delete comment">&#128465;</button>`
+            ? `<button class="comment-delete" onclick="deleteComment(${post.id}, ${c.id})" title="Delete comment"><i data-lucide="trash-2"></i></button>`
             : ''}
         </div>
         <div class="comment-body">${escapeHTML(c.body)}</div>
@@ -587,11 +590,15 @@ function renderCommentSection(postId) {
   const post = posts.find(p => p.id === postId);
   if (!post) return;
   const section = document.getElementById(`comments-${postId}`);
-  if (section) section.innerHTML = buildCommentSectionInner(post);
+  if (section) {
+    section.innerHTML = buildCommentSectionInner(post);
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
   const btn = document.getElementById(`comment-btn-${postId}`);
   if (btn) {
     const count = post.commentCount || 0;
-    btn.innerHTML = `&#128172; ${count} <span class="comment-chevron">&#9662;</span>`;
+    btn.innerHTML = `<i data-lucide="message-square"></i> ${count} <span class="comment-chevron"><i data-lucide="chevron-down"></i></span>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 }
 

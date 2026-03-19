@@ -85,19 +85,20 @@ function renderMyPosts(myPosts) {
   if (myPosts.length === 0) {
     feed.innerHTML = `
       <div class="no-posts">
-        <div class="icon">&#128172;</div>
+        <div class="icon"><i data-lucide="message-square"></i></div>
         <h3>No posts yet</h3>
         <p>Head over to the <a href="forum.html" style="color:var(--accent);">forum</a> to share your first post.</p>
       </div>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     return;
   }
 
   feed.innerHTML = myPosts.map(post => `
     <div class="post-card">
       <div class="vote-col">
-        <span style="font-size:0.7rem; color:var(--muted);">&#9650;</span>
+        <span style="font-size:0.7rem; color:var(--muted);"><i data-lucide="chevron-up"></i></span>
         <span class="vote-score">${post.score}</span>
-        <span style="font-size:0.7rem; color:var(--muted);">&#9660;</span>
+        <span style="font-size:0.7rem; color:var(--muted);"><i data-lucide="chevron-down"></i></span>
       </div>
       <div class="post-body">
         <div class="post-meta">
@@ -108,12 +109,13 @@ function renderMyPosts(myPosts) {
         ${post.image ? `<img class="post-image" src="${post.image}" alt="Post image" />` : ''}
         ${post.body  ? `<div class="post-text">${escapeHTML(post.body)}</div>` : ''}
         <div class="post-footer">
-          <a href="forum.html" class="post-action" style="text-decoration:none;">&#128172; View in Forum</a>
-          <button class="post-action delete" onclick="deleteMyPost(${post.id})">&#128465; Delete</button>
+          <a href="forum.html" class="post-action" style="text-decoration:none;"><i data-lucide="message-square"></i> View in Forum</a>
+          <button class="post-action delete" onclick="deleteMyPost(${post.id})"><i data-lucide="trash-2"></i> Delete</button>
         </div>
       </div>
     </div>
   `).join('');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 async function deleteMyPost(id) {
@@ -158,9 +160,10 @@ function renderTagList() {
   list.innerHTML = editInterests.map((tag, i) => `
     <span class="tag-pill">
       ${escapeHTML(tag)}
-      <button type="button" onclick="removeTag(${i})" title="Remove">&#10005;</button>
+      <button type="button" onclick="removeTag(${i})" title="Remove"><i data-lucide="x"></i></button>
     </span>
   `).join('');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function addTag(value) {
@@ -225,7 +228,8 @@ async function deleteAccount() {
   if (error) {
     showToast('Error deleting account. Please try again.');
     btn.disabled   = false;
-    btn.innerHTML  = '&#128465; Permanently Delete';
+    btn.innerHTML  = '<i data-lucide="trash-2"></i> Permanently Delete';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     return;
   }
 

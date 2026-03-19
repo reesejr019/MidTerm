@@ -153,7 +153,8 @@ function switchAuthMode(mode) {
 
 function updateAuthModal() {
   const isLogin = authMode === 'login';
-  document.getElementById('auth-modal-title').innerHTML = isLogin ? '&#128273; Log In' : '&#9998; Sign Up';
+  document.getElementById('auth-modal-title').innerHTML = isLogin ? '<i data-lucide="log-in"></i> Log In' : '<i data-lucide="user-plus"></i> Sign Up';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
   document.getElementById('auth-tab-login').classList.toggle('active', isLogin);
   document.getElementById('auth-tab-signup').classList.toggle('active', !isLogin);
   document.getElementById('auth-submit-btn').textContent = isLogin ? 'Log In' : 'Create Account';
@@ -202,18 +203,20 @@ function updateNavAuth() {
   if (!navRight) return;
   const onForum = !!document.getElementById('overlay');
   const createPostBtn = onForum
-    ? `<button class="btn btn-primary btn-sm" onclick="openModal()">&#43; Create Post</button>`
-    : `<a href="forum.html" class="btn btn-primary btn-sm">&#43; Create Post</a>`;
+    ? `<button class="btn btn-primary btn-sm" onclick="openModal()"><i data-lucide="plus"></i> Create Post</button>`
+    : `<a href="forum.html" class="btn btn-primary btn-sm"><i data-lucide="plus"></i> Create Post</a>`;
   if (user) {
     navRight.innerHTML = `
       <a href="profile.html" class="nav-username">${escapeHTML(user.username)}</a>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Log Out</button>
       ${createPostBtn}
     `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   } else {
     navRight.innerHTML = `
       <button class="btn btn-ghost btn-sm" onclick="openAuthModal('login')">Log In</button>
       <button class="btn btn-primary btn-sm" onclick="openAuthModal('signup')">Sign Up</button>
     `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 }

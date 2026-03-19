@@ -31,13 +31,13 @@
         </div>
       </div>
       <button class="btn btn-ghost btn-sm profile-edit-btn" id="edit-toggle-btn" onclick="enterEditMode()">
-        &#9998; Edit Profile
+        <i data-lucide="pencil"></i> Edit Profile
       </button>
     </div>
 
     <!-- EDIT FORM (hidden by default) -->
     <div class="profile-edit-card" id="edit-card" style="display:none;">
-      <h3>&#9998; Edit Profile</h3>
+      <h3><i data-lucide="pencil"></i> Edit Profile</h3>
 
       <div class="form-group">
         <label for="edit-bio">About Me</label>
@@ -85,7 +85,7 @@
           <input type="text" id="delete-confirm-input" placeholder="Enter your username..." autocomplete="off" />
           <div class="danger-actions">
             <button class="btn btn-ghost btn-sm" onclick="hideDeleteConfirm()">Cancel</button>
-            <button class="btn btn-danger btn-sm" id="delete-final-btn" onclick="deleteAccount()">&#128465; Permanently Delete</button>
+            <button class="btn btn-danger btn-sm" id="delete-final-btn" onclick="deleteAccount()"><i data-lucide="trash-2"></i> Permanently Delete</button>
           </div>
         </div>
       </div>
@@ -96,7 +96,7 @@
 
       <!-- LEFT: ABOUT -->
       <aside class="profile-about-card" id="about-card">
-        <h3>&#128100; About</h3>
+        <h3><i data-lucide="user"></i> About</h3>
         <p class="about-bio" id="about-bio"></p>
 
         <div class="interests-section" id="interests-section" style="display:none;">
@@ -108,7 +108,7 @@
       <!-- RIGHT: MY POSTS -->
       <main>
         <div class="feed-header">
-          <h2>&#128172; My Posts</h2>
+          <h2><i data-lucide="layout-list"></i> My Posts</h2>
           <span id="my-post-count" style="color:var(--muted); font-size:0.85rem;">0 posts</span>
         </div>
         <div id="my-posts-feed">
@@ -123,10 +123,12 @@
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-client.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/profile.js"></script>
+  <script>if (typeof lucide !== 'undefined') lucide.createIcons();</script>
 
 </body>
 </html>

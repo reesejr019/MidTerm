@@ -62,32 +62,32 @@
 
     <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-icon">&#128172;</div>
+        <div class="feature-icon"><i data-lucide="message-square"></i></div>
         <h3>Create & Manage Forums</h3>
         <p>Spin up dedicated forum spaces for any topic. Full control over your community threads.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">&#128247;</div>
+        <div class="feature-icon"><i data-lucide="image"></i></div>
         <h3>Rich Media Posts</h3>
         <p>Attach images and media directly to your posts. Tell your story with more than just words.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">&#128077;</div>
+        <div class="feature-icon"><i data-lucide="thumbs-up"></i></div>
         <h3>Vote on Content</h3>
         <p>Upvote posts you love, downvote what you don't. Let the community decide what rises to the top.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">&#128269;</div>
+        <div class="feature-icon"><i data-lucide="search"></i></div>
         <h3>Powerful Search</h3>
         <p>Find any post, thread, or topic in seconds with the built-in search across the entire database.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">&#128465;</div>
+        <div class="feature-icon"><i data-lucide="pencil"></i></div>
         <h3>Post Management</h3>
         <p>Add new posts and delete old ones. Keep your community clean and up to date.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">&#128737;</div>
+        <div class="feature-icon"><i data-lucide="shield"></i></div>
         <h3>Moderated Content</h3>
         <p>All content goes through moderation to keep the community safe and welcoming for everyone.</p>
       </div>
@@ -118,7 +118,7 @@
             </div>
             <div class="mock-content">
               <div class="mock-meta">Posted bydevstarter &nbsp;·&nbsp; 3 hours ago</div>
-              <div class="mock-title">Just shipped my first open-source project — here's what I learned &#127881;</div>
+              <div class="mock-title">Just shipped my first open-source project — here's what I learned</div>
               <div class="mock-tags">
                 <span class="tag">programming</span>
                 <span class="tag">open-source</span>
@@ -179,6 +179,7 @@
     <p style="color:var(--muted); font-size:0.82rem;">&#169; 2026 Forum Creation</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-client.js"></script>
   <script>
@@ -200,5 +201,6 @@
       document.getElementById('stat-idx-forums').textContent = forums.toLocaleString();
     })();
   </script>
+  <script>lucide.createIcons();</script>
 </body>
 </html>
