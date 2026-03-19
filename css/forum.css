@@ -90,7 +90,6 @@ nav {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border-bottom: none;
   margin-bottom: 0;
   background: var(--card);
   border: 1px solid var(--border);
@@ -122,6 +121,13 @@ nav {
 }
 
 /* ── RESPONSIVE ── */
+@media (max-width: 1050px) {
+  .layout {
+    grid-template-columns: 1fr 300px;
+  }
+  .left-sidebar { display: none; }
+}
+
 @media (max-width: 768px) {
   nav { padding: 12px 16px; }
   .nav-right { gap: 8px; }
