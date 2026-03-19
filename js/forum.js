@@ -416,7 +416,7 @@ function resetForm() {
 // ── IMAGE UPLOAD ──
 function handleImageSelect(e) {
   const file = e.target.files[0];
-  if (file) loadImage(file);
+  if (file && file.type.startsWith('image/')) loadImage(file);
 }
 
 function handleDragOver(e) {
@@ -436,9 +436,25 @@ function handleDrop(e) {
 }
 
 function loadImage(file) {
+  // GIFs: skip canvas to preserve animation
+  if (file.type === 'image/gif') {
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      selectedImageDataURL = ev.target.result;
+      document.getElementById('img-preview').src                  = ev.target.result;
+      document.getElementById('upload-placeholder').style.display = 'none';
+      document.getElementById('img-preview-wrap').style.display   = 'block';
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = function(ev) {
     const img = new Image();
+    img.onerror = function() {
+      showToast('Could not load image. Please try a different file.');
+    };
     img.onload = function() {
       const MAX_WIDTH = 1200;
       const scale = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1;
@@ -446,8 +462,11 @@ function loadImage(file) {
       canvas.width  = Math.round(img.width  * scale);
       canvas.height = Math.round(img.height * scale);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      // Preserve PNG for transparency; convert everything else to JPEG
-      const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      // PNG and WEBP may have transparency — output as PNG to preserve alpha.
+      // Everything else (JPEG etc.) outputs as JPEG.
+      const mime = (file.type === 'image/png' || file.type === 'image/webp')
+        ? 'image/png'
+        : 'image/jpeg';
       selectedImageDataURL = canvas.toDataURL(mime, 0.9);
       document.getElementById('img-preview').src                  = selectedImageDataURL;
       document.getElementById('upload-placeholder').style.display = 'none';
