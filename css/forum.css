@@ -999,3 +999,32 @@ input[type="password"]:focus { border-color: var(--accent); }
 .search-icon .lucide { width: 16px; height: 16px; }
 .comment-chevron .lucide { width: 10px; height: 10px; }
 .trending-badge .lucide { width: 12px; height: 12px; }
+
+/* ── INFINITE SCROLL ── */
+.feed-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 28px 0;
+}
+
+.feed-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.feed-all-caught-up {
+  text-align: center;
+  padding: 28px 0 40px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}

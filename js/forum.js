@@ -54,34 +54,42 @@ let activeFilter = 'All';
 let activeSort = 'hot';
 let expandedComments = new Set();
 
+// ── PAGINATION STATE ──
+const PAGE_SIZE    = 15;
+let currentPage    = 0;
+let hasMore        = true;
+let isLoading      = false;
+let scrollObserver = null;
+let searchDebounce = null;
+
 // ── SEARCH / FILTER ──
 function handleSearch() {
   const raw = document.getElementById('search-input').value;
   searchQuery = raw.trim();
   document.getElementById('search-clear').classList.toggle('visible', raw.length > 0);
-  _renderFeedDOM();
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => resetAndReload(), 400);
 }
 
 function clearSearch() {
   document.getElementById('search-input').value = '';
   searchQuery = '';
   document.getElementById('search-clear').classList.remove('visible');
-  _renderFeedDOM();
+  resetAndReload();
 }
 
 function setFilter(forum, el) {
   activeFilter = forum;
   document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
-  _renderFeedDOM();
+  resetAndReload();
 }
-
 
 function setSort(sort, el) {
   activeSort = sort;
   document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  _renderFeedDOM();
+  resetAndReload();
 }
 
 function hotScore(post) {
@@ -94,23 +102,12 @@ function isTrending(post) {
   return post.score >= 3 && ageHours <= 48;
 }
 
-function getFilteredPosts() {
-  const q = searchQuery.toLowerCase();
-  const filtered = posts.slice().filter(post => {
-    const matchesForum = activeFilter === 'All' || post.forum === activeFilter;
-    const matchesQuery = !q
-      || post.title.toLowerCase().includes(q)
-      || (post.body && post.body.toLowerCase().includes(q))
-      || post.forum.toLowerCase().includes(q);
-    return matchesForum && matchesQuery;
-  });
-
-  switch (activeSort) {
-    case 'hot': return filtered.sort((a, b) => hotScore(b) - hotScore(a));
-    case 'new': return filtered.sort((a, b) => b.createdAt - a.createdAt);
-    case 'top': return filtered.sort((a, b) => b.score - a.score);
-    default:    return filtered;
+function getSortedPosts() {
+  if (activeSort === 'hot') {
+    return posts.slice().sort((a, b) => hotScore(b) - hotScore(a));
   }
+  // 'new' and 'top' are already ordered server-side
+  return posts.slice();
 }
 
 function highlight(text, query) {
@@ -121,27 +118,53 @@ function highlight(text, query) {
   return safe.replace(new RegExp(regexSafe, 'gi'), m => `<mark>${m}</mark>`);
 }
 
-// ── DB FETCH ──
-async function loadPostsFromDB() {
+// ── DB FETCH (PAGINATED) ──
+async function loadNextPage() {
+  if (isLoading || !hasMore) return;
+  isLoading = true;
+  showLoadingIndicator(true);
+
+  const from = currentPage * PAGE_SIZE;
+  const to   = from + PAGE_SIZE - 1;
+
+  let query = sb.from('posts').select('*, comments(count)');
+
+  if (activeFilter !== 'All') {
+    query = query.eq('forum', activeFilter);
+  }
+  if (searchQuery) {
+    query = query.or(`title.ilike.%${searchQuery}%,body.ilike.%${searchQuery}%`);
+  }
+  if (activeSort === 'top') {
+    query = query.order('score', { ascending: false });
+  } else {
+    query = query.order('created_at', { ascending: false });
+  }
+
+  query = query.range(from, to);
+
+  const { data: postRows, error } = await query;
+
+  if (error || !postRows) {
+    isLoading = false;
+    showLoadingIndicator(false);
+    return;
+  }
+
+  // Fetch votes only for this batch
   const user = getCurrentUser();
-
-  const { data: postRows } = await sb
-    .from('posts')
-    .select('*, comments(count)')
-    .order('created_at', { ascending: false });
-
   let userVoteMap = {};
-  if (user && postRows?.length) {
+  if (user && postRows.length) {
+    const ids = postRows.map(r => r.id);
     const { data: voteRows } = await sb
       .from('votes')
       .select('post_id, value')
-      .eq('user_id', user.id);
-    if (voteRows) {
-      voteRows.forEach(v => { userVoteMap[v.post_id] = v.value; });
-    }
+      .eq('user_id', user.id)
+      .in('post_id', ids);
+    if (voteRows) voteRows.forEach(v => { userVoteMap[v.post_id] = v.value; });
   }
 
-  posts = (postRows || []).map(row => ({
+  const newPosts = postRows.map(row => ({
     id:           row.id,
     title:        row.title,
     body:         row.body || '',
@@ -157,13 +180,64 @@ async function loadPostsFromDB() {
     reported:     row.reported || false,
     reportReason: row.report_reason || ''
   }));
+
+  posts = posts.concat(newPosts);
+  hasMore = postRows.length === PAGE_SIZE;
+  currentPage++;
+
+  _appendPostsDOM(newPosts);
+  updatePostCount();
+
+  isLoading = false;
+  showLoadingIndicator(false);
+
+  if (!hasMore) showAllCaughtUp(true);
 }
 
 // ── RENDER ──
 async function renderFeed() {
-  await loadPostsFromDB();
-  _renderFeedDOM();
+  buildSentinel();
+  initIntersectionObserver();
+  await resetAndReload();
   loadMemberCount();
+  loadSidebarStats();
+}
+
+async function resetAndReload() {
+  posts       = [];
+  currentPage = 0;
+  hasMore     = true;
+  isLoading   = false;
+  expandedComments.clear();
+
+  const feed = document.getElementById('feed');
+  // Clear all post cards but keep the sentinel
+  const sentinel = document.getElementById('scroll-sentinel');
+  feed.innerHTML = '';
+  if (sentinel) feed.appendChild(sentinel);
+
+  showAllCaughtUp(false);
+  updatePostCount();
+  await loadNextPage();
+}
+
+function buildSentinel() {
+  if (document.getElementById('scroll-sentinel')) return;
+  const sentinel = document.createElement('div');
+  sentinel.id = 'scroll-sentinel';
+  sentinel.style.height = '1px';
+  document.getElementById('feed').appendChild(sentinel);
+}
+
+function initIntersectionObserver() {
+  if (scrollObserver) scrollObserver.disconnect();
+  scrollObserver = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && hasMore && !isLoading) {
+      loadNextPage();
+    }
+  }, { rootMargin: '200px' });
+  const sentinel = document.getElementById('scroll-sentinel');
+  if (sentinel) scrollObserver.observe(sentinel);
 }
 
 async function loadMemberCount() {
@@ -172,43 +246,46 @@ async function loadMemberCount() {
   if (el && count !== null) el.textContent = count.toLocaleString();
 }
 
-function _renderFeedDOM() {
-  const feed      = document.getElementById('feed');
-  const count     = document.getElementById('post-count');
+async function loadSidebarStats() {
+  let countQuery = sb.from('posts').select('*', { count: 'exact', head: true });
+  if (activeFilter !== 'All') countQuery = countQuery.eq('forum', activeFilter);
+  if (searchQuery) countQuery = countQuery.or(`title.ilike.%${searchQuery}%,body.ilike.%${searchQuery}%`);
+
+  const { count: postCount } = await countQuery;
+
   const statPosts = document.getElementById('stat-posts');
+  const statVotes = document.getElementById('stat-votes');
+  if (statPosts && postCount !== null) statPosts.textContent = postCount.toLocaleString();
+  if (statVotes) {
+    statVotes.textContent = posts.reduce((sum, p) => sum + Math.abs(p.score), 0).toLocaleString();
+  }
+}
 
-  statPosts.textContent = posts.length;
-  document.getElementById('stat-votes').textContent =
-    posts.reduce((sum, p) => sum + Math.abs(p.score), 0);
-
-  if (posts.length === 0) {
+function updatePostCount() {
+  const count = document.getElementById('post-count');
+  if (!count) return;
+  const n = posts.length;
+  if (n === 0 && !isLoading) {
     count.textContent = '0 posts';
-    feed.innerHTML = `
-      <div class="empty-state">
-        <div class="icon"><i data-lucide="message-square"></i></div>
-        <h3>No posts yet</h3>
-        <p>Be the first to share something with the community.</p>
-      </div>`;
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-    return;
+  } else {
+    count.textContent = n + (n === 1 ? ' post' : ' posts') + (hasMore ? '+' : '');
   }
+}
 
-  const filtered = getFilteredPosts();
-  count.textContent = filtered.length + (filtered.length === 1 ? ' post' : ' posts');
+function showLoadingIndicator(visible) {
+  const el = document.getElementById('feed-loading');
+  if (el) el.style.display = visible ? 'flex' : 'none';
+}
 
-  if (filtered.length === 0) {
-    feed.innerHTML = `
-      <div class="no-results">
-        <div class="icon"><i data-lucide="search"></i></div>
-        <h3>No results found</h3>
-        <p>Try different keywords or clear the search filter.</p>
-      </div>`;
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-    return;
-  }
+function showAllCaughtUp(visible) {
+  const el = document.getElementById('feed-all-caught-up');
+  if (el) el.style.display = visible ? 'block' : 'none';
+}
 
+// ── POST CARD HTML ──
+function buildPostCardHTML(post) {
   const user = getCurrentUser();
-  feed.innerHTML = filtered.map(post => `
+  return `
     <div class="post-card" id="post-${post.id}">
       <div class="vote-col">
         <button class="vote-btn ${post.userVote === 1 ? 'active-up' : ''}"
@@ -252,7 +329,46 @@ function _renderFeedDOM() {
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+}
+
+function _appendPostsDOM(newPosts) {
+  const feed     = document.getElementById('feed');
+  const sentinel = document.getElementById('scroll-sentinel');
+
+  if (activeSort === 'hot') {
+    // Re-sort entire buffer and re-render all cards
+    const sorted = getSortedPosts();
+    feed.querySelectorAll('.post-card').forEach(el => el.remove());
+    const temp = document.createElement('div');
+    temp.innerHTML = sorted.map(buildPostCardHTML).join('');
+    Array.from(temp.children).forEach(node => feed.insertBefore(node, sentinel));
+  } else {
+    // Append only the new batch before the sentinel
+    const temp = document.createElement('div');
+    temp.innerHTML = newPosts.map(buildPostCardHTML).join('');
+    Array.from(temp.children).forEach(node => feed.insertBefore(node, sentinel));
+  }
+
+  // Empty state
+  if (posts.length === 0) {
+    const empty = document.createElement('div');
+    if (searchQuery) {
+      empty.className = 'no-results';
+      empty.innerHTML = `
+        <div class="icon"><i data-lucide="search"></i></div>
+        <h3>No results found</h3>
+        <p>Try different keywords or clear the search filter.</p>`;
+    } else {
+      empty.className = 'empty-state';
+      empty.innerHTML = `
+        <div class="icon"><i data-lucide="message-square"></i></div>
+        <h3>No posts yet</h3>
+        <p>Be the first to share something with the community.</p>`;
+    }
+    feed.insertBefore(empty, sentinel);
+  }
+
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
@@ -284,34 +400,23 @@ async function submitPost(e) {
 
   if (error || !newRow) { showToast('Error creating post. Please try again.'); return; }
 
-  posts.unshift({
-    id:           newRow.id,
-    title:        newRow.title,
-    body:         newRow.body || '',
-    image:        newRow.image || '',
-    forum:        newRow.forum,
-    author:       newRow.author_username,
-    author_id:    newRow.author_id,
-    score:        0,
-    userVote:     0,
-    createdAt:    new Date(newRow.created_at).getTime(),
-    comments:     [],
-    commentCount: 0,
-    reported:     false,
-    reportReason: ''
-  });
-
-  _renderFeedDOM();
   closeModal();
   resetForm();
   showToast('Post published successfully!');
+  await resetAndReload();
+  loadSidebarStats();
 }
 
 // ── DELETE POST ──
 async function deletePost(id) {
   await sb.from('posts').delete().eq('id', id);
   posts = posts.filter(p => p.id !== id);
-  _renderFeedDOM();
+
+  const card = document.getElementById(`post-${id}`);
+  if (card) card.remove();
+
+  updatePostCount();
+  loadSidebarStats();
   showToast('Post deleted.');
 }
 
@@ -353,7 +458,11 @@ async function submitReport() {
   post.reported     = true;
   post.reportReason = reason;
 
-  _renderFeedDOM();
+  const card = document.getElementById(`post-${reportTargetId}`);
+  if (card) {
+    card.outerHTML = buildPostCardHTML(post);
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
   closeReportModal();
   showToast('Report submitted. Thank you for keeping the forum safe.');
 }
@@ -369,28 +478,32 @@ async function vote(id, dir) {
   let newVote;
 
   if (currentVote === dir) {
-    // Same direction: toggle off
     newVote = 0;
     await sb.from('votes').delete().eq('post_id', id).eq('user_id', user.id);
   } else if (currentVote !== 0) {
-    // Opposite direction: cancel current vote (score changes by exactly 1, not 2)
     newVote = 0;
     await sb.from('votes').delete().eq('post_id', id).eq('user_id', user.id);
   } else {
-    // No prior vote: apply new vote
     newVote = dir;
     await sb.from('votes').upsert({ post_id: id, user_id: user.id, value: dir });
   }
 
-  // Recalculate score from the votes table (ground truth) so stale
-  // client-side cache never corrupts the score for concurrent voters.
   const { data: allVotes } = await sb.from('votes').select('value').eq('post_id', id);
   const newScore = (allVotes || []).reduce((sum, v) => sum + v.value, 0);
 
   await sb.from('posts').update({ score: newScore }).eq('id', id);
   post.score    = newScore;
   post.userVote = newVote;
-  _renderFeedDOM();
+
+  // Update only the affected card's vote UI in place
+  const card = document.getElementById(`post-${id}`);
+  if (card) {
+    const scoreEl  = card.querySelector('.vote-score');
+    const voteBtns = card.querySelectorAll('.vote-btn');
+    if (scoreEl)      scoreEl.textContent = newScore;
+    if (voteBtns[0])  voteBtns[0].classList.toggle('active-up',   newVote === 1);
+    if (voteBtns[1])  voteBtns[1].classList.toggle('active-down', newVote === -1);
+  }
 }
 
 // ── MODAL ──
@@ -465,8 +578,6 @@ function loadImage(file) {
       canvas.width  = Math.round(img.width  * scale);
       canvas.height = Math.round(img.height * scale);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      // PNG and WEBP may have transparency — output as PNG to preserve alpha.
-      // Everything else (JPEG etc.) outputs as JPEG.
       const mime = (file.type === 'image/png' || file.type === 'image/webp')
         ? 'image/png'
         : 'image/jpeg';
