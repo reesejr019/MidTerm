@@ -227,7 +227,7 @@ function _renderFeedDOM() {
         <div class="reported-banner">
           &#9888; Reported &nbsp;&middot;&nbsp; ${escapeHTML(post.reportReason)}
         </div>` : ''}
-        ${post.image ? `<img class="post-image" src="${post.image}" alt="Post image" />` : ''}
+        ${post.image ? `<img class="post-image" src="${post.image}" alt="Post image" loading="lazy" decoding="async" />` : ''}
         ${post.body ? `<div class="post-text">${highlight(post.body, searchQuery)}</div>` : ''}
         <div class="post-footer">
           <button class="post-action comment ${expandedComments.has(post.id) ? 'open' : ''}"
@@ -438,10 +438,22 @@ function handleDrop(e) {
 function loadImage(file) {
   const reader = new FileReader();
   reader.onload = function(ev) {
-    selectedImageDataURL = ev.target.result;
-    document.getElementById('img-preview').src = selectedImageDataURL;
-    document.getElementById('upload-placeholder').style.display  = 'none';
-    document.getElementById('img-preview-wrap').style.display    = 'block';
+    const img = new Image();
+    img.onload = function() {
+      const MAX_WIDTH = 1200;
+      const scale = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1;
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      // Preserve PNG for transparency; convert everything else to JPEG
+      const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      selectedImageDataURL = canvas.toDataURL(mime, 0.9);
+      document.getElementById('img-preview').src                  = selectedImageDataURL;
+      document.getElementById('upload-placeholder').style.display = 'none';
+      document.getElementById('img-preview-wrap').style.display   = 'block';
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
