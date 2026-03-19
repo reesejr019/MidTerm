@@ -55,12 +55,13 @@ let activeSort = 'hot';
 let expandedComments = new Set();
 
 // ── PAGINATION STATE ──
-const PAGE_SIZE    = 15;
-let currentPage    = 0;
-let hasMore        = true;
-let isLoading      = false;
-let scrollObserver = null;
-let searchDebounce = null;
+const PAGE_SIZE      = 15;
+let currentPage      = 0;
+let hasMore          = true;
+let isLoading        = false;
+let fetchGeneration  = 0;   // incremented on every reset; stale fetches discard their results
+let scrollObserver   = null;
+let searchDebounce   = null;
 
 // ── SEARCH / FILTER ──
 function handleSearch() {
@@ -122,6 +123,7 @@ function highlight(text, query) {
 async function loadNextPage() {
   if (isLoading || !hasMore) return;
   isLoading = true;
+  const myGen = fetchGeneration;  // snapshot — used to detect stale fetches
   showLoadingIndicator(true);
 
   const from = currentPage * PAGE_SIZE;
@@ -133,7 +135,11 @@ async function loadNextPage() {
     query = query.eq('forum', activeFilter);
   }
   if (searchQuery) {
-    query = query.or(`title.ilike.%${searchQuery}%,body.ilike.%${searchQuery}%`);
+    // Strip LIKE metacharacters and chars that break PostgREST's or() syntax
+    const safe = searchQuery.replace(/[%_,()]/g, ' ').trim();
+    if (safe) {
+      query = query.or(`title.ilike.%${safe}%,body.ilike.%${safe}%`);
+    }
   }
   if (activeSort === 'top') {
     query = query.order('score', { ascending: false });
@@ -144,6 +150,13 @@ async function loadNextPage() {
   query = query.range(from, to);
 
   const { data: postRows, error } = await query;
+
+  // Discard results if a reset happened while we were awaiting
+  if (myGen !== fetchGeneration) {
+    isLoading = false;
+    showLoadingIndicator(false);
+    return;
+  }
 
   if (error || !postRows) {
     isLoading = false;
@@ -204,6 +217,7 @@ async function renderFeed() {
 }
 
 async function resetAndReload() {
+  fetchGeneration++;          // invalidate any in-flight loadNextPage calls
   posts       = [];
   currentPage = 0;
   hasMore     = true;
