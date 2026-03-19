@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forum Creation — Privacy Policy</title>
+  <link rel="stylesheet" href="css/forum.css" />
+  <style>
+    .policy-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 36px 24px;
+    }
+    .policy-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 40px;
+    }
+    .policy-card h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .policy-card .subtitle {
+      color: var(--muted);
+      font-size: 0.875rem;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .policy-card h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 28px 0 10px;
+    }
+    .policy-card p, .policy-card li {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+    .policy-card ul {
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--accent); }
+    @media (max-width: 768px) {
+      .policy-card { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="logo">Forum <span>Creation</span></a>
+    <div class="nav-right">
+      <a href="forum.html" class="btn btn-ghost">Browse Posts</a>
+    </div>
+  </nav>
+
+  <div class="policy-wrap">
+    <a href="forum.html" class="back-link">&#8592; Back to Forum</a>
+
+    <div class="policy-card">
+      <h1>&#128274; Privacy Policy</h1>
+      <p class="subtitle">Last updated: March 2026 &mdash; Your privacy matters to us. This policy explains what data we collect and how we use it.</p>
+
+      <h2>1. Information We Collect</h2>
+      <p>When you create an account, we collect:</p>
+      <ul>
+        <li>Your chosen username</li>
+        <li>Your email address (used for authentication only)</li>
+        <li>Your password (stored as a secure hash &mdash; never in plain text)</li>
+      </ul>
+      <p>When you use the forum, we also collect content you create: posts, comments, votes, and profile information you voluntarily provide (bio, interests).</p>
+
+      <h2>2. How We Store Your Data</h2>
+      <p>This site uses <strong>Supabase</strong> as its backend. Your data is stored in a managed PostgreSQL database hosted by Supabase. Supabase complies with GDPR and other applicable data protection regulations. No raw passwords are stored &mdash; authentication is handled through Supabase Auth with secure, industry-standard encryption.</p>
+
+      <h2>3. How We Use Your Information</h2>
+      <ul>
+        <li>To authenticate you and maintain your session</li>
+        <li>To display your username alongside your posts and comments</li>
+        <li>To allow you to personalize your profile</li>
+        <li>To enforce community rules and review reported content</li>
+      </ul>
+
+      <h2>4. What We Do NOT Do</h2>
+      <ul>
+        <li>We do not sell your personal data to third parties.</li>
+        <li>We do not use your data for targeted advertising.</li>
+        <li>We do not share your email address publicly or with other users.</li>
+        <li>We do not track your browsing activity outside this site.</li>
+      </ul>
+
+      <h2>5. Cookies and Sessions</h2>
+      <p>We use session tokens stored in your browser to keep you logged in. These are necessary for the site to function and are not used for tracking or analytics purposes.</p>
+
+      <h2>6. Your Rights</h2>
+      <p>You have the right to:</p>
+      <ul>
+        <li>Access the personal data we hold about you</li>
+        <li>Request correction of inaccurate data</li>
+        <li>Delete your account and associated data at any time from your profile settings</li>
+      </ul>
+
+      <h2>7. Data Retention</h2>
+      <p>Your data is retained for as long as your account is active. When you delete your account, your profile and posts are removed from our database. Some anonymized metadata may be retained for moderation purposes.</p>
+
+      <h2>8. Changes to This Policy</h2>
+      <p>We may update this privacy policy periodically. We will notify users of significant changes. Continued use of the forum after changes constitutes acceptance of the updated policy.</p>
+
+      <h2>9. Contact</h2>
+      <p>If you have questions about your data or this privacy policy, please use the report feature on the forum or reach out through the community.</p>
+    </div>
+  </div>
+
+</body>
+</html>

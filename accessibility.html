@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forum Creation — Accessibility</title>
+  <link rel="stylesheet" href="css/forum.css" />
+  <style>
+    .policy-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 36px 24px;
+    }
+    .policy-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 40px;
+    }
+    .policy-card h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .policy-card .subtitle {
+      color: var(--muted);
+      font-size: 0.875rem;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .policy-card h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 28px 0 10px;
+    }
+    .policy-card p, .policy-card li {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+    .policy-card ul {
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--accent); }
+    @media (max-width: 768px) {
+      .policy-card { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="logo">Forum <span>Creation</span></a>
+    <div class="nav-right">
+      <a href="forum.html" class="btn btn-ghost">Browse Posts</a>
+    </div>
+  </nav>
+
+  <div class="policy-wrap">
+    <a href="forum.html" class="back-link">&#8592; Back to Forum</a>
+
+    <div class="policy-card">
+      <h1>&#9855; Accessibility</h1>
+      <p class="subtitle">Last updated: March 2026 &mdash; We are committed to making Forum Creation usable by everyone.</p>
+
+      <h2>Our Commitment</h2>
+      <p>Forum Creation aims to be accessible to all users, including those who rely on assistive technologies such as screen readers, keyboard navigation, or high-contrast display modes. We strive to follow the Web Content Accessibility Guidelines (WCAG) 2.1 as a baseline for our design decisions.</p>
+
+      <h2>Keyboard Navigation</h2>
+      <p>All core functionality on this site can be accessed using a keyboard alone:</p>
+      <ul>
+        <li>Use <strong>Tab</strong> to move forward through interactive elements</li>
+        <li>Use <strong>Shift + Tab</strong> to move backward</li>
+        <li>Use <strong>Enter</strong> or <strong>Space</strong> to activate buttons and links</li>
+        <li>Use <strong>Escape</strong> to close modals and clear the search input</li>
+        <li>Use <strong>Arrow keys</strong> to navigate radio button groups in forms</li>
+      </ul>
+
+      <h2>Screen Reader Support</h2>
+      <p>We use semantic HTML elements (nav, main, aside, h1&ndash;h3, button, etc.) so that screen readers can correctly interpret the structure of our pages. Interactive controls include descriptive labels and ARIA attributes where needed.</p>
+
+      <h2>Color and Contrast</h2>
+      <p>Our dark theme is designed with contrast ratios in mind. Primary text against the page background meets WCAG AA contrast requirements. Accent colors are used to highlight interactive elements and active states, not to convey information exclusively through color.</p>
+
+      <h2>Text and Font Size</h2>
+      <p>All text on the site is rendered with relative units and respects your browser's font size settings. You can increase or decrease text size using your browser's built-in zoom or text size controls without breaking the layout.</p>
+
+      <h2>Images and Media</h2>
+      <p>Images uploaded by users are presented with appropriate structural context. We encourage users to include descriptive context in their posts when sharing images so that all community members can engage with the content.</p>
+
+      <h2>Mobile and Touch Accessibility</h2>
+      <p>The site is fully responsive and designed for touch interaction. Touch targets are sized to be comfortably tappable. The layout adapts to different screen sizes and orientations.</p>
+
+      <h2>Known Limitations</h2>
+      <p>We are continuously working to improve accessibility. Current areas we are actively improving include:</p>
+      <ul>
+        <li>More comprehensive ARIA live region announcements for dynamic content updates</li>
+        <li>Skip-to-content links for keyboard users</li>
+        <li>Enhanced focus indicators in all themes</li>
+      </ul>
+
+      <h2>Feedback</h2>
+      <p>If you encounter an accessibility barrier or have suggestions for improvement, we want to hear from you. Please use the report button on any post to reach our moderation team, or describe the issue in a post in the General forum. We take accessibility feedback seriously and will work to address issues promptly.</p>
+    </div>
+  </div>
+
+</body>
+</html>
