@@ -657,6 +657,7 @@ async function loadAndRenderComments(postId) {
   if (post) {
     post.comments = (rows || []).map(c => ({
       id:        c.id,
+      parent_id: c.parent_id || null,
       author:    c.author_username,
       author_id: c.author_id,
       body:      c.body,
@@ -667,23 +668,84 @@ async function loadAndRenderComments(postId) {
   renderCommentSection(postId);
 }
 
+function buildCommentTree(comments) {
+  const map = {};
+  const roots = [];
+  comments.forEach(c => { map[c.id] = { ...c, replies: [] }; });
+  comments.forEach(c => {
+    if (c.parent_id && map[c.parent_id]) {
+      map[c.parent_id].replies.push(map[c.id]);
+    } else {
+      roots.push(map[c.id]);
+    }
+  });
+  return roots;
+}
+
+function renderCommentNode(node, postId) {
+  const user = getCurrentUser();
+  const repliesHTML = node.replies.length
+    ? `<div class="comment-replies">${node.replies.map(r => renderCommentNode(r, postId)).join('')}</div>`
+    : '';
+
+  return `
+    <div class="comment-item" id="comment-${node.id}">
+      <div class="comment-meta">
+        <strong class="comment-author">${escapeHTML(node.author)}</strong>
+        <span class="comment-time">${timeAgo(node.createdAt)}</span>
+        ${user && node.author_id === user.id
+          ? `<button class="comment-delete" onclick="deleteComment(${postId}, ${node.id})" title="Delete comment"><i data-lucide="trash-2"></i></button>`
+          : ''}
+      </div>
+      <div class="comment-body">${escapeHTML(node.body)}</div>
+      <div class="comment-actions">
+        ${user ? `<button class="comment-reply-btn" onclick="toggleReplyForm(${postId}, ${node.id})"><i data-lucide="corner-down-right"></i> Reply</button>` : ''}
+      </div>
+      <div class="reply-form-wrap" id="reply-form-${node.id}" style="display:none;">
+        <div class="comment-input-row">
+          <div class="comment-avatar">${user ? escapeHTML(user.username.charAt(0).toUpperCase()) : ''}</div>
+          <textarea
+            id="reply-input-${node.id}"
+            class="comment-textarea"
+            placeholder="Write a reply... (Ctrl+Enter to post)"
+            maxlength="500"
+            rows="2"
+            oninput="document.getElementById('reply-count-${node.id}').textContent = this.value.length"
+            onkeydown="if(event.ctrlKey && event.key==='Enter') submitComment(${postId}, ${node.id})"
+          ></textarea>
+        </div>
+        <div class="comment-form-footer">
+          <span class="char-count"><span id="reply-count-${node.id}">0</span>/500</span>
+          <button class="btn btn-ghost btn-sm" onclick="toggleReplyForm(${postId}, ${node.id})">Cancel</button>
+          <button class="btn btn-primary btn-sm" onclick="submitComment(${postId}, ${node.id})">Reply</button>
+        </div>
+      </div>
+      ${repliesHTML}
+    </div>
+  `;
+}
+
+function toggleReplyForm(postId, commentId) {
+  const form = document.getElementById(`reply-form-${commentId}`);
+  if (!form) return;
+  const isVisible = form.style.display !== 'none';
+  form.style.display = isVisible ? 'none' : 'block';
+  if (!isVisible) {
+    const input = document.getElementById(`reply-input-${commentId}`);
+    if (input) { input.value = ''; input.focus(); }
+    const counter = document.getElementById(`reply-count-${commentId}`);
+    if (counter) counter.textContent = '0';
+  }
+}
+
 function buildCommentSectionInner(post) {
   const comments = post.comments || [];
   const user     = getCurrentUser();
 
-  const listHTML = comments.length === 0
+  const tree = buildCommentTree(comments);
+  const listHTML = tree.length === 0
     ? '<p class="no-comments">No comments yet. Be the first!</p>'
-    : comments.map(c => `
-      <div class="comment-item">
-        <div class="comment-meta">
-          <strong class="comment-author">${escapeHTML(c.author)}</strong>
-          <span class="comment-time">${timeAgo(c.createdAt)}</span>
-          ${user && c.author_id === user.id
-            ? `<button class="comment-delete" onclick="deleteComment(${post.id}, ${c.id})" title="Delete comment"><i data-lucide="trash-2"></i></button>`
-            : ''}
-        </div>
-        <div class="comment-body">${escapeHTML(c.body)}</div>
-      </div>`).join('');
+    : tree.map(c => renderCommentNode(c, post.id)).join('');
 
   const formHTML = user
     ? `<div class="comment-form">
@@ -727,48 +789,36 @@ function renderCommentSection(postId) {
   }
 }
 
-async function submitComment(postId) {
+async function submitComment(postId, parentId = null) {
   if (!getCurrentUser()) { openAuthModal('login'); return; }
-  const input = document.getElementById(`comment-input-${postId}`);
-  const body  = input ? input.value.trim() : '';
+  const inputId = parentId !== null ? `reply-input-${parentId}` : `comment-input-${postId}`;
+  const input   = document.getElementById(inputId);
+  const body    = input ? input.value.trim() : '';
   if (!body) return;
 
   const flagged = moderateText(body);
-  if (flagged) { showToast(`Comment blocked: "${flagged}" is not allowed.`); return; }
+  if (flagged) { showToast(`${parentId ? 'Reply' : 'Comment'} blocked: "${flagged}" is not allowed.`); return; }
 
   const user = getCurrentUser();
   const { data: newComment, error } = await sb.from('comments').insert({
     post_id:         postId,
+    parent_id:       parentId,
     author_id:       user.id,
     author_username: user.username,
     body
   }).select().single();
 
-  if (error || !newComment) { showToast('Error posting comment. Please try again.'); return; }
+  if (error || !newComment) { showToast(`Error posting ${parentId ? 'reply' : 'comment'}. Please try again.`); return; }
 
-  const post = posts.find(p => p.id === postId);
-  if (post) {
-    post.comments.push({
-      id:        newComment.id,
-      author:    newComment.author_username,
-      author_id: newComment.author_id,
-      body:      newComment.body,
-      createdAt: new Date(newComment.created_at).getTime()
-    });
-    post.commentCount = (post.commentCount || 0) + 1;
-  }
-  renderCommentSection(postId);
-  showToast('Comment posted!');
+  // Reload all comments from DB so the tree is accurate
+  await loadAndRenderComments(postId);
+  showToast(parentId ? 'Reply posted!' : 'Comment posted!');
 }
 
 async function deleteComment(postId, commentId) {
   await sb.from('comments').delete().eq('id', commentId);
-  const post = posts.find(p => p.id === postId);
-  if (post) {
-    post.comments    = post.comments.filter(c => c.id !== commentId);
-    post.commentCount = Math.max(0, (post.commentCount || 0) - 1);
-  }
-  renderCommentSection(postId);
+  // Reload from DB — DB cascade removes any child replies automatically
+  await loadAndRenderComments(postId);
   showToast('Comment deleted.');
 }
 

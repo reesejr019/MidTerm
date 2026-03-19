@@ -986,6 +986,47 @@ input[type="password"]:focus { border-color: var(--accent); }
 .comment-login-prompt a { color: var(--accent); font-weight: 600; text-decoration: none; }
 .comment-login-prompt a:hover { text-decoration: underline; }
 
+/* ── COMMENT THREADING ── */
+.comment-replies {
+  margin-top: 6px;
+  margin-left: 16px;
+  padding-left: 12px;
+  border-left: 2px solid var(--border);
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.comment-reply-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s;
+}
+
+.comment-reply-btn:hover { color: var(--accent); }
+.comment-reply-btn .lucide { width: 12px; height: 12px; }
+
+.reply-form-wrap {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
 /* ── LUCIDE ICONS ── */
 .lucide {
   width: 1em;
