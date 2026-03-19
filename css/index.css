@@ -224,7 +224,7 @@ nav ul a:hover { color: var(--text); }
 
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
   gap: 20px;
 }
 
@@ -460,4 +460,23 @@ footer p { color: var(--muted); font-size: 0.82rem; }
     text-align: center;
     gap: 6px;
   }
+}
+
+@media (max-width: 480px) {
+  nav { padding: 12px 14px; }
+
+  .hero { padding: 80px 16px 48px; }
+  .hero p { font-size: 0.95rem; }
+
+  .stats { gap: 16px 20px; padding: 24px 16px; }
+  .stat-num { font-size: 1.4rem; }
+
+  .section { padding: 48px 16px; }
+  .section-sub { margin-bottom: 40px; }
+
+  .preview-section { padding: 48px 12px; }
+
+  .cta-section { padding: 56px 16px; }
+
+  footer { padding: 20px 16px; }
 }

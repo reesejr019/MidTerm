@@ -105,9 +105,9 @@ nav {
   .filter-pills::-webkit-scrollbar { display: none; }
   .pill { flex-shrink: 0; }
 
-  .modal { padding: 20px 18px; border-radius: 12px; }
+  .modal { padding: 20px 18px; border-radius: 12px; max-width: 100%; }
   .auth-modal { max-width: 100%; }
-  .report-modal { padding: 20px 18px; }
+  .report-modal { padding: 20px 18px; max-width: 100%; }
 
   .form-actions { flex-direction: column-reverse; }
   .form-actions .btn { width: 100%; justify-content: center; }
