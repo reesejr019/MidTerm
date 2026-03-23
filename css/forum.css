@@ -95,15 +95,7 @@ nav {
 
   .post-card { padding: 14px 14px; gap: 12px; }
 
-  .filter-pills {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 4px;
-  }
-  .filter-pills::-webkit-scrollbar { display: none; }
-  .pill { flex-shrink: 0; }
+  .filter-dropdown { width: 100%; }
 
   .modal { padding: 20px 18px; border-radius: 12px; max-width: 100%; }
   .auth-modal { max-width: 100%; }
@@ -604,15 +596,69 @@ select option { background: var(--card); }
 .search-clear:hover { color: var(--text); }
 
 /* ── FILTER PILLS ── */
+/* ── FILTER DROPDOWN ── */
+.filter-wrap {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.filter-toggle:hover,
+.filter-wrap.open .filter-toggle {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.filter-toggle .lucide { width: 14px; height: 14px; }
+
+.filter-chevron {
+  transition: transform 0.2s;
+}
+
+.filter-wrap.open .filter-chevron {
+  transform: rotate(180deg);
+}
+
+.filter-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 100;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+  min-width: 340px;
+}
+
+.filter-dropdown.open {
+  display: block;
+}
+
 .filter-pills {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
 }
 
 .pill {
-  background: var(--card);
+  background: var(--surface);
   border: 1px solid var(--border);
   color: var(--muted);
   font-size: 0.78rem;

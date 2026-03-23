@@ -48,26 +48,35 @@
         <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear search"><i data-lucide="x"></i></button>
       </div>
 
-      <!-- FORUM FILTER PILLS -->
-      <div class="filter-pills">
-        <button class="pill active" onclick="setFilter('All', this)">All</button>
-        <button class="pill" onclick="setFilter('General', this)">General</button>
-        <button class="pill" onclick="setFilter('Technology', this)">Technology</button>
-        <button class="pill" onclick="setFilter('Photography', this)">Photography</button>
-        <button class="pill" onclick="setFilter('Discussion', this)">Discussion</button>
-        <button class="pill" onclick="setFilter('Creative', this)">Creative</button>
-        <button class="pill" onclick="setFilter('Science', this)">Science</button>
-        <button class="pill" onclick="setFilter('Gaming', this)">Gaming</button>
-        <button class="pill" onclick="setFilter('Music', this)">Music</button>
-        <button class="pill" onclick="setFilter('Sports', this)">Sports</button>
-        <button class="pill" onclick="setFilter('Travel', this)">Travel</button>
-        <button class="pill" onclick="setFilter('Food & Drink', this)">Food &amp; Drink</button>
-        <button class="pill" onclick="setFilter('Art', this)">Art</button>
-        <button class="pill" onclick="setFilter('Movies & TV', this)">Movies &amp; TV</button>
-        <button class="pill" onclick="setFilter('Books', this)">Books</button>
-        <button class="pill" onclick="setFilter('Health', this)">Health &amp; Fitness</button>
-        <button class="pill" onclick="setFilter('News', this)">News</button>
-        <button class="pill" onclick="setFilter('Humor', this)">Humor</button>
+      <!-- CATEGORY FILTER -->
+      <div class="filter-wrap" id="filter-wrap">
+        <button class="filter-toggle" id="filter-toggle" onclick="toggleFilterDropdown()">
+          <i data-lucide="filter"></i>
+          <span id="filter-label">All Categories</span>
+          <i data-lucide="chevron-down" class="filter-chevron"></i>
+        </button>
+        <div class="filter-dropdown" id="filter-dropdown">
+          <div class="filter-pills">
+            <button class="pill active" onclick="setFilter('All', this)">All</button>
+            <button class="pill" onclick="setFilter('General', this)">General</button>
+            <button class="pill" onclick="setFilter('Technology', this)">Technology</button>
+            <button class="pill" onclick="setFilter('Photography', this)">Photography</button>
+            <button class="pill" onclick="setFilter('Discussion', this)">Discussion</button>
+            <button class="pill" onclick="setFilter('Creative', this)">Creative</button>
+            <button class="pill" onclick="setFilter('Science', this)">Science</button>
+            <button class="pill" onclick="setFilter('Gaming', this)">Gaming</button>
+            <button class="pill" onclick="setFilter('Music', this)">Music</button>
+            <button class="pill" onclick="setFilter('Sports', this)">Sports</button>
+            <button class="pill" onclick="setFilter('Travel', this)">Travel</button>
+            <button class="pill" onclick="setFilter('Food & Drink', this)">Food &amp; Drink</button>
+            <button class="pill" onclick="setFilter('Art', this)">Art</button>
+            <button class="pill" onclick="setFilter('Movies & TV', this)">Movies &amp; TV</button>
+            <button class="pill" onclick="setFilter('Books', this)">Books</button>
+            <button class="pill" onclick="setFilter('Health', this)">Health &amp; Fitness</button>
+            <button class="pill" onclick="setFilter('News', this)">News</button>
+            <button class="pill" onclick="setFilter('Humor', this)">Humor</button>
+          </div>
+        </div>
       </div>
 
       <div id="feed">

@@ -80,10 +80,27 @@ function clearSearch() {
   resetAndReload();
 }
 
+function toggleFilterDropdown() {
+  const wrap     = document.getElementById('filter-wrap');
+  const dropdown = document.getElementById('filter-dropdown');
+  if (!wrap || !dropdown) return;
+  const isOpen = dropdown.classList.toggle('open');
+  wrap.classList.toggle('open', isOpen);
+}
+
 function setFilter(forum, el) {
   activeFilter = forum;
   document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
+
+  // Update toggle button label
+  const label = document.getElementById('filter-label');
+  if (label) label.textContent = forum === 'All' ? 'All Categories' : forum;
+
+  // Close dropdown
+  document.getElementById('filter-dropdown')?.classList.remove('open');
+  document.getElementById('filter-wrap')?.classList.remove('open');
+
   resetAndReload();
 }
 
@@ -869,6 +886,15 @@ async function deleteComment(postId, commentId) {
   await loadAndRenderComments(postId);
   showToast('Comment deleted.');
 }
+
+// Close filter dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('filter-wrap');
+  if (wrap && wrap.classList.contains('open') && !wrap.contains(e.target)) {
+    wrap.classList.remove('open');
+    document.getElementById('filter-dropdown')?.classList.remove('open');
+  }
+});
 
 // ── INIT ──
 onAuthReady(() => renderFeed());
