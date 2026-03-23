@@ -90,7 +90,7 @@ function renderMyPosts(myPosts) {
   const feed    = document.getElementById('my-posts-feed');
   const countEl = document.getElementById('my-post-count');
 
-  countEl.textContent = myPosts.length + (myPosts.length === 1 ? ' post' : ' posts');
+  countEl.textContent = myPosts.length;
 
   if (myPosts.length === 0) {
     feed.innerHTML = `

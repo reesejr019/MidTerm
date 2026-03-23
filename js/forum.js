@@ -432,19 +432,26 @@ async function submitPost(e) {
 }
 
 // ── DELETE POST ──
+const _togglingBookmarks = new Set(); // guard against double-click
+
 async function toggleBookmark(postId) {
   if (!getCurrentUser()) { openAuthModal('login'); return; }
+  if (_togglingBookmarks.has(postId)) return;
   const post = posts.find(p => p.id === postId);
   if (!post) return;
   const user = getCurrentUser();
 
-  if (post.bookmarked) {
-    await sb.from('bookmarks').delete().eq('post_id', postId).eq('user_id', user.id);
-    post.bookmarked = false;
+  _togglingBookmarks.add(postId);
+  const wasBookmarked = post.bookmarked;
+
+  if (wasBookmarked) {
+    const { error } = await sb.from('bookmarks').delete().eq('post_id', postId).eq('user_id', user.id);
+    if (!error) post.bookmarked = false;
   } else {
-    await sb.from('bookmarks').insert({ post_id: postId, user_id: user.id });
-    post.bookmarked = true;
+    const { error } = await sb.from('bookmarks').insert({ post_id: postId, user_id: user.id });
+    if (!error) post.bookmarked = true;
   }
+  _togglingBookmarks.delete(postId);
 
   const btn = document.getElementById(`bookmark-btn-${postId}`);
   if (btn) {
