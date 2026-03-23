@@ -55,8 +55,10 @@ async function markAllNotifsRead() {
 }
 
 function _getNotifIcon(type) {
-  if (type === 'comment') return 'message-circle';
-  if (type === 'reply')   return 'corner-down-right';
+  if (type === 'comment')  return 'message-circle';
+  if (type === 'reply')    return 'corner-down-right';
+  if (type === 'upvote')   return 'arrow-up';
+  if (type === 'downvote') return 'arrow-down';
   return 'bell';
 }
 

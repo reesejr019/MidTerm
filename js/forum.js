@@ -519,6 +519,18 @@ async function vote(id, dir) {
     if (voteBtns[0])  voteBtns[0].classList.toggle('active-up',   newVote === 1);
     if (voteBtns[1])  voteBtns[1].classList.toggle('active-down', newVote === -1);
   }
+
+  // Notify post author when a new vote is cast (not on removal)
+  if (newVote !== 0 && typeof createNotification === 'function' && post.author_id) {
+    const label = newVote === 1 ? 'upvoted' : 'downvoted';
+    createNotification({
+      recipientId:   post.author_id,
+      type:          newVote === 1 ? 'upvote' : 'downvote',
+      postId:        id,
+      actorUsername: user.username,
+      message:       `${user.username} ${label} your post`
+    });
+  }
 }
 
 // ── MODAL ──
