@@ -941,3 +941,159 @@ Test these changes.
 ## Assistant
 
 Ran Puppeteer tests across forum.html, nav, profile.html, and index.html. Tests caught a missed instance — the landing page preview mockup still had `u/devstarter`, `u/nightowl`, `u/curiousmind`. Fixed and pushed. Final result: 7/7 passed — no `u/` or `r/` prefixes anywhere on the site.
+No bugs found. The reply button count and comment section toggle both work correctly. Committed and pushed.
+
+---
+
+## User
+
+Let's work on a notifications tab that informs users of interactions on their posts.
+
+---
+
+## Assistant
+
+Provided Supabase SQL migration to create the `notifications` table with RLS policies, then implemented the full notifications system:
+
+**New file — `js/notifications.js`:**
+- `createNotification()` — inserts a notification row; skips self-notifications
+- `loadNotifications()` — fetches last 30 notifications for the current user
+- `updateNotifBadge()` — queries unread count and updates the badge element
+- `markAllNotifsRead()` — marks all unread notifications as read
+- `toggleNotifPanel()` — opens/closes the dropdown panel, loads and renders notifications on open
+- `handleNotifClick()` — closes panel and scrolls to the post card (or navigates to forum.html)
+- Outside-click listener to close the panel; 30-second badge polling interval
+
+**Changes to `js/auth.js`:**
+- `updateNavAuth()` — logged-in nav now includes a bell icon button with an unread badge and a dropdown panel placeholder
+
+**Changes to `js/forum.js`:**
+- `submitComment()` — after a successful insert, fires `createNotification()` for the post author (top-level comment) or parent comment author (reply)
+
+**Changes to `forum.html` and `profile.html`:**
+- Added `<script src="js/notifications.js">` before the main JS file
+
+**Changes to `css/forum.css`:**
+- Styles for `.notif-wrap`, `.notif-btn`, `.notif-badge`, `.notif-panel`, `.notif-header`, `.notif-empty`, `.notif-list`, `.notif-item`, `.notif-icon`, `.notif-body`, `.notif-message`, `.notif-time`, `.notif-highlight`
+
+Committed and pushed.
+
+---
+
+## User
+
+The notifications should also indicate whether a post was upvoted or downvoted.
+
+---
+
+## Assistant
+
+Added vote notifications:
+
+**Changes to `js/forum.js`:**
+- `vote()` — after a successful new vote (`newVote !== 0`), fires `createNotification()` with type `'upvote'` or `'downvote'` and message "username upvoted/downvoted your post". Does not fire on vote removal.
+
+**Changes to `js/notifications.js`:**
+- `_getNotifIcon()` — added `'upvote'` → `arrow-up` and `'downvote'` → `arrow-down` icon mappings
+
+Committed and pushed.
+
+---
+
+## User
+
+Test this change for bugs.
+
+---
+
+## Assistant
+
+Found and fixed two bugs:
+
+1. **Race condition in `toggleNotifPanel`** — double-clicking the bell while data was loading would flip `_notifOpen` back to false but still render content into the closed panel. Fixed with an `_isLoadingNotifs` guard and a check that `_notifOpen` is still true before calling `_renderNotifPanel`.
+
+2. **Duplicate vote notifications** — un-voting and re-voting fired a new notification each time, potentially spamming the post author. Fixed with a per-session `_sentVoteNotifs` Set that tracks `"postId:type"` keys and skips duplicate vote notifications.
+
+Committed and pushed.
+
+---
+
+## User
+
+Push these changes.
+
+---
+
+## Assistant
+
+Already pushed — all three notification commits were live on GitHub Pages. Nothing left to push.
+
+---
+
+## User
+
+I want to fit all the button pills for the categories into a single collapsible button. If a user wishes to see more categories, they should be able to click this button to see all the categories.
+
+---
+
+## Assistant
+
+Replaced the flat pill row with a collapsible category dropdown:
+
+**Changes to `forum.html`:**
+- Wrapped all pills inside a `.filter-wrap` div containing a `.filter-toggle` button (filter icon + active label + chevron) and a hidden `.filter-dropdown` panel
+
+**Changes to `js/forum.js`:**
+- Added `toggleFilterDropdown()` — toggles `open` class on wrap and dropdown
+- Updated `setFilter()` — updates the button label to the active category name and closes the dropdown after selection
+- Added outside-click listener to close the dropdown
+
+**Changes to `css/forum.css`:**
+- Styles for `.filter-wrap`, `.filter-toggle`, `.filter-chevron` (rotates 180° when open), `.filter-dropdown`, and updated `.filter-pills` for wrapping layout inside the panel
+
+Committed and pushed.
+
+---
+
+## User
+
+Test these changes.
+
+---
+
+## Assistant
+
+Found one minor issue: the `filter-toggle` button had no `type="button"` attribute, defaulting to `type="submit"`. Fixed and pushed. All other logic (active state management, outside-click, chevron animation, mobile overflow, z-index) was clean.
+
+---
+
+## User
+
+Let's remove this change and go back to the original filter pill layout we had before.
+
+---
+
+## Assistant
+
+Reverted the collapsible dropdown entirely and restored the original wrapping flex pill row:
+
+- Removed dropdown wrapper HTML from `forum.html`
+- Removed `toggleFilterDropdown()` and dropdown logic from `setFilter()`, removed outside-click listener from `js/forum.js`
+- Restored original `.filter-pills` (flex wrap) and `.pill` styles in `css/forum.css`
+- Restored mobile horizontal-scroll override
+
+Committed and pushed.
+
+---
+
+## User
+
+Let's remove this change and go back to the original filter pill layout we had before.
+
+---
+
+## Assistant
+
+Reverted the compact horizontal scroll pill row and restored the original wrapping layout — `flex-wrap: wrap`, original pill sizing (`font-size: 0.78rem`, `padding: 5px 14px`), and the original mobile horizontal-scroll override. Committed and pushed.
+
+---
