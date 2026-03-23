@@ -13,18 +13,20 @@ let editInterests = [];
 
 // ── INIT ──
 async function initProfile() {
-  const user     = getCurrentUser();
-  profileData    = await getProfile(user.id);
+  const user = getCurrentUser();
+  profileData = await getProfile(user.id);
   const joinedAt = await getUserJoinedAt(user.id);
-  const myPosts  = await loadMyPosts();
+  const [myPosts, myBookmarks] = await Promise.all([loadMyPosts(), loadBookmarks()]);
 
   document.getElementById('profile-avatar').textContent   = user.username.charAt(0).toUpperCase();
   document.getElementById('profile-username').textContent = user.username;
   document.getElementById('profile-joined').textContent   = formatJoinDate(joinedAt);
   document.getElementById('stat-post-count').textContent  = myPosts.length;
+  document.getElementById('stat-bookmark-count').textContent = myBookmarks.length;
 
   renderAbout();
   renderMyPosts(myPosts);
+  renderBookmarks(myBookmarks);
 }
 
 // ── HELPERS ──
@@ -73,6 +75,14 @@ function renderAbout() {
   } else {
     interestSection.style.display = 'none';
   }
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  document.getElementById('tab-posts').classList.toggle('active', tab === 'posts');
+  document.getElementById('tab-bookmarks').classList.toggle('active', tab === 'bookmarks');
+  document.getElementById('my-posts-feed').style.display     = tab === 'posts'     ? '' : 'none';
+  document.getElementById('my-bookmarks-feed').style.display = tab === 'bookmarks' ? '' : 'none';
 }
 
 // ── MY POSTS ──
@@ -124,6 +134,87 @@ async function deleteMyPost(id) {
   document.getElementById('stat-post-count').textContent = myPosts.length;
   renderMyPosts(myPosts);
   showToast('Post deleted.');
+}
+
+// ── BOOKMARKS ──
+async function loadBookmarks() {
+  const user = getCurrentUser();
+  const { data } = await sb
+    .from('bookmarks')
+    .select('created_at, posts(*)')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+  return (data || []).filter(row => row.posts).map(row => ({
+    id:        row.posts.id,
+    title:     row.posts.title,
+    body:      row.posts.body || '',
+    image:     row.posts.image || '',
+    forum:     row.posts.forum,
+    author:    row.posts.author_username,
+    score:     row.posts.score,
+    createdAt: new Date(row.posts.created_at).getTime()
+  }));
+}
+
+function renderBookmarks(bookmarks) {
+  const feed = document.getElementById('my-bookmarks-feed');
+  document.getElementById('my-bookmark-count').textContent  = bookmarks.length;
+  document.getElementById('stat-bookmark-count').textContent = bookmarks.length;
+
+  if (bookmarks.length === 0) {
+    feed.innerHTML = `
+      <div class="no-posts">
+        <div class="icon"><i data-lucide="bookmark"></i></div>
+        <h3>No bookmarks yet</h3>
+        <p>Hit <strong>Save</strong> on any post in the <a href="forum.html" style="color:var(--accent);">forum</a> to find it here.</p>
+      </div>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    return;
+  }
+
+  feed.innerHTML = bookmarks.map(post => `
+    <div class="post-card" id="bm-${post.id}">
+      <div class="vote-col">
+        <span style="font-size:0.7rem; color:var(--muted);"><i data-lucide="chevron-up"></i></span>
+        <span class="vote-score">${post.score}</span>
+        <span style="font-size:0.7rem; color:var(--muted);"><i data-lucide="chevron-down"></i></span>
+      </div>
+      <div class="post-body">
+        <div class="post-meta">
+          <span class="forum-tag">${escapeHTML(post.forum)}</span>
+          &nbsp;·&nbsp; Posted by <strong>${escapeHTML(post.author)}</strong>
+          &nbsp;·&nbsp; ${timeAgo(post.createdAt)}
+        </div>
+        <div class="post-title">${escapeHTML(post.title)}</div>
+        ${post.image ? `<img class="post-image" src="${post.image}" alt="Post image" />` : ''}
+        ${post.body  ? `<div class="post-text">${escapeHTML(post.body)}</div>` : ''}
+        <div class="post-footer">
+          <a href="forum.html" class="post-action" style="text-decoration:none;">
+            <i data-lucide="external-link"></i> View in Forum
+          </a>
+          <button class="post-action delete" onclick="removeBookmark(${post.id})">
+            <i data-lucide="bookmark-x"></i> Remove
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function removeBookmark(postId) {
+  const user = getCurrentUser();
+  await sb.from('bookmarks').delete().eq('post_id', postId).eq('user_id', user.id);
+  const card = document.getElementById(`bm-${postId}`);
+  if (card) card.remove();
+  const remaining = document.querySelectorAll('#my-bookmarks-feed .post-card').length;
+  document.getElementById('my-bookmark-count').textContent   = remaining;
+  document.getElementById('stat-bookmark-count').textContent = remaining;
+  if (remaining === 0) {
+    const bookmarks = await loadBookmarks();
+    renderBookmarks(bookmarks);
+  }
+  showToast('Bookmark removed.');
 }
 
 // ── EDIT MODE ──

@@ -28,6 +28,7 @@
         <div class="profile-joined" id="profile-joined"></div>
         <div class="profile-stats-row">
           <span class="profile-stat"><span id="stat-post-count">0</span> Posts</span>
+          <span class="profile-stat"><span id="stat-bookmark-count">0</span> Bookmarks</span>
         </div>
       </div>
       <button class="btn btn-ghost btn-sm profile-edit-btn" id="edit-toggle-btn" onclick="enterEditMode()">
@@ -105,13 +106,23 @@
         </div>
       </aside>
 
-      <!-- RIGHT: MY POSTS -->
+      <!-- RIGHT: TABS + FEEDS -->
       <main>
-        <div class="feed-header">
-          <h2><i data-lucide="layout-list"></i> My Posts</h2>
-          <span id="my-post-count" style="color:var(--muted); font-size:0.85rem;">0 posts</span>
+        <div class="profile-tabs">
+          <button class="profile-tab active" id="tab-posts" onclick="switchTab('posts')">
+            <i data-lucide="layout-list"></i> My Posts
+            <span class="tab-count" id="my-post-count">0</span>
+          </button>
+          <button class="profile-tab" id="tab-bookmarks" onclick="switchTab('bookmarks')">
+            <i data-lucide="bookmark"></i> Bookmarks
+            <span class="tab-count" id="my-bookmark-count">0</span>
+          </button>
         </div>
+
         <div id="my-posts-feed">
+          <!-- rendered by profile.js -->
+        </div>
+        <div id="my-bookmarks-feed" style="display:none;">
           <!-- rendered by profile.js -->
         </div>
       </main>

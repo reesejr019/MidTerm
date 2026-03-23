@@ -272,6 +272,9 @@ nav {
 .post-action:hover { background: var(--surface); color: var(--text); }
 .post-action.delete:hover { color: var(--accent-2); }
 
+.post-action.bookmark.active { color: var(--accent); }
+.post-action.bookmark.active:hover { color: var(--accent); opacity: 0.8; }
+
 /* ── SIDEBAR ── */
 .sidebar-card {
   background: var(--card);

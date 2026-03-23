@@ -165,17 +165,18 @@ async function loadNextPage() {
     return;
   }
 
-  // Fetch votes only for this batch
+  // Fetch votes and bookmarks in parallel for this batch
   const user = getCurrentUser();
   let userVoteMap = {};
+  let userBookmarkSet = {};
   if (user && postRows.length) {
     const ids = postRows.map(r => r.id);
-    const { data: voteRows } = await sb
-      .from('votes')
-      .select('post_id, value')
-      .eq('user_id', user.id)
-      .in('post_id', ids);
-    if (voteRows) voteRows.forEach(v => { userVoteMap[v.post_id] = v.value; });
+    const [voteRes, bookmarkRes] = await Promise.all([
+      sb.from('votes').select('post_id, value').eq('user_id', user.id).in('post_id', ids),
+      sb.from('bookmarks').select('post_id').eq('user_id', user.id).in('post_id', ids)
+    ]);
+    if (voteRes.data)     voteRes.data.forEach(v => { userVoteMap[v.post_id] = v.value; });
+    if (bookmarkRes.data) bookmarkRes.data.forEach(b => { userBookmarkSet[b.post_id] = true; });
   }
 
   const newPosts = postRows.map(row => ({
@@ -188,6 +189,7 @@ async function loadNextPage() {
     author_id:    row.author_id,
     score:        row.score,
     userVote:     userVoteMap[row.id] || 0,
+    bookmarked:   userBookmarkSet[row.id] || false,
     createdAt:    new Date(row.created_at).getTime(),
     comments:     [],
     commentCount: row.comments?.[0]?.count ?? 0,
@@ -333,6 +335,13 @@ function buildPostCardHTML(post) {
             title="${post.reported ? 'Already reported' : 'Report post'}">
             <i data-lucide="flag"></i> ${post.reported ? 'Reported' : 'Report'}
           </button>
+          ${user ? `
+          <button class="post-action bookmark ${post.bookmarked ? 'active' : ''}"
+            id="bookmark-btn-${post.id}"
+            onclick="toggleBookmark(${post.id})"
+            title="${post.bookmarked ? 'Remove bookmark' : 'Save post'}">
+            <i data-lucide="bookmark"></i> ${post.bookmarked ? 'Saved' : 'Save'}
+          </button>` : ''}
           ${user && post.author_id === user.id ? `
           <button class="post-action delete" onclick="deletePost(${post.id})">
             <i data-lucide="trash-2"></i> Delete
@@ -423,6 +432,30 @@ async function submitPost(e) {
 }
 
 // ── DELETE POST ──
+async function toggleBookmark(postId) {
+  if (!getCurrentUser()) { openAuthModal('login'); return; }
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+  const user = getCurrentUser();
+
+  if (post.bookmarked) {
+    await sb.from('bookmarks').delete().eq('post_id', postId).eq('user_id', user.id);
+    post.bookmarked = false;
+  } else {
+    await sb.from('bookmarks').insert({ post_id: postId, user_id: user.id });
+    post.bookmarked = true;
+  }
+
+  const btn = document.getElementById(`bookmark-btn-${postId}`);
+  if (btn) {
+    btn.classList.toggle('active', post.bookmarked);
+    btn.title = post.bookmarked ? 'Remove bookmark' : 'Save post';
+    btn.innerHTML = `<i data-lucide="bookmark"></i> ${post.bookmarked ? 'Saved' : 'Save'}`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+  showToast(post.bookmarked ? 'Post saved!' : 'Bookmark removed.');
+}
+
 async function deletePost(id) {
   await sb.from('posts').delete().eq('id', id);
   posts = posts.filter(p => p.id !== id);
