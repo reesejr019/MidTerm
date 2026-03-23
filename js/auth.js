@@ -207,11 +207,19 @@ function updateNavAuth() {
     : `<a href="forum.html" class="btn btn-primary btn-sm"><i data-lucide="plus"></i> Create Post</a>`;
   if (user) {
     navRight.innerHTML = `
+      <div class="notif-wrap">
+        <button class="notif-btn" id="notif-btn" onclick="toggleNotifPanel()" title="Notifications">
+          <i data-lucide="bell"></i>
+          <span class="notif-badge" id="notif-badge" style="display:none;"></span>
+        </button>
+        <div class="notif-panel" id="notif-panel"></div>
+      </div>
       <a href="profile.html" class="nav-username">${escapeHTML(user.username)}</a>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Log Out</button>
       ${createPostBtn}
     `;
     if (typeof lucide !== 'undefined') lucide.createIcons();
+    if (typeof updateNotifBadge === 'function') updateNotifBadge();
   } else {
     navRight.innerHTML = `
       <button class="btn btn-ghost btn-sm" onclick="openAuthModal('login')">Log In</button>

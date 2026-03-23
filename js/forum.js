@@ -816,6 +816,36 @@ async function submitComment(postId, parentId = null) {
   isSubmittingComment = false;
   if (error || !newComment) { showToast(`Error posting ${parentId ? 'reply' : 'comment'}. Please try again.`); return; }
 
+  // Fire notification (non-blocking)
+  if (typeof createNotification === 'function') {
+    if (parentId === null) {
+      const post = posts.find(p => p.id === postId);
+      if (post && post.author_id) {
+        createNotification({
+          recipientId:   post.author_id,
+          type:          'comment',
+          postId,
+          commentId:     newComment.id,
+          actorUsername: user.username,
+          message:       `${user.username} commented on your post`
+        });
+      }
+    } else {
+      sb.from('comments').select('author_id').eq('id', parentId).single().then(({ data: parent }) => {
+        if (parent && parent.author_id) {
+          createNotification({
+            recipientId:   parent.author_id,
+            type:          'reply',
+            postId,
+            commentId:     newComment.id,
+            actorUsername: user.username,
+            message:       `${user.username} replied to your comment`
+          });
+        }
+      });
+    }
+  }
+
   // Reload all comments from DB so the tree is accurate
   await loadAndRenderComments(postId);
   showToast(parentId ? 'Reply posted!' : 'Comment posted!');
