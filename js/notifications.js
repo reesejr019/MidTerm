@@ -1,9 +1,19 @@
 // ── NOTIFICATIONS ──
-let _notifOpen = false;
+let _notifOpen        = false;
+let _isLoadingNotifs  = false;
+const _sentVoteNotifs = new Set(); // tracks "postId:type" to prevent duplicate vote notifs per session
 
 async function createNotification({ recipientId, type, postId, commentId = null, actorUsername, message }) {
   const user = getCurrentUser();
   if (!user || !recipientId || recipientId === user.id) return; // no self-notifications
+
+  // Deduplicate vote notifications per session — one upvote/downvote notif per post per user
+  if (type === 'upvote' || type === 'downvote') {
+    const key = `${postId}:${type}`;
+    if (_sentVoteNotifs.has(key)) return;
+    _sentVoteNotifs.add(key);
+  }
+
   await sb.from('notifications').insert({
     user_id:        recipientId,
     type,
@@ -91,17 +101,31 @@ function _renderNotifPanel(notifs, panel) {
 async function toggleNotifPanel() {
   const panel = document.getElementById('notif-panel');
   if (!panel) return;
-  _notifOpen = !_notifOpen;
+
+  // Close if already open
   if (_notifOpen) {
-    panel.classList.add('open');
-    await markAllNotifsRead();
-    updateNotifBadge();
-    const notifs = await loadNotifications();
+    _notifOpen = false;
+    panel.classList.remove('open');
+    return;
+  }
+
+  // Guard against double-open while loading
+  if (_isLoadingNotifs) return;
+  _isLoadingNotifs = true;
+  _notifOpen = true;
+  panel.classList.add('open');
+
+  await markAllNotifsRead();
+  updateNotifBadge();
+  const notifs = await loadNotifications();
+
+  // Only render if still open (user may have closed while loading)
+  if (_notifOpen) {
     _renderNotifPanel(notifs, panel);
     if (typeof lucide !== 'undefined') lucide.createIcons();
-  } else {
-    panel.classList.remove('open');
   }
+
+  _isLoadingNotifs = false;
 }
 
 function handleNotifClick(postId) {
