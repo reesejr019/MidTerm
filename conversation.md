@@ -1097,3 +1097,70 @@ Let's remove this change and go back to the original filter pill layout we had b
 Reverted the compact horizontal scroll pill row and restored the original wrapping layout — `flex-wrap: wrap`, original pill sizing (`font-size: 0.78rem`, `padding: 5px 14px`), and the original mobile horizontal-scroll override. Committed and pushed.
 
 ---
+
+## User
+
+Let's add one more feature that allows users to bookmark or favorite posts to view later. Add a corresponding tab to view these bookmarked posts.
+
+---
+
+## Assistant
+
+Provided Supabase SQL migration to create the `bookmarks` table with RLS policies (unique constraint on user_id + post_id, CASCADE on delete), then implemented the full feature:
+
+**Changes to `js/forum.js`:**
+- `loadNextPage()` — fetches vote state and bookmark state in parallel for each batch using `Promise.all`; adds `bookmarked` property to each post object
+- `buildPostCardHTML()` — adds a **Save** button for logged-in users; shows as purple "Saved" when active
+- Added `toggleBookmark(postId)` — inserts or deletes from the bookmarks table, updates button state in-place
+
+**Changes to `profile.html`:**
+- Added **My Posts | Bookmarks** tab switcher with count badges inside each tab
+- Added `stat-bookmark-count` stat to the header stats row
+- Added `id="my-bookmarks-feed"` div for the bookmarks content
+
+**Changes to `js/profile.js`:**
+- `initProfile()` — loads posts and bookmarks in parallel with `Promise.all`
+- Added `switchTab(tab)` — toggles tab active state and feed visibility
+- Added `loadBookmarks()` — queries bookmarks table with `posts(*)` join, ordered by save date
+- Added `renderBookmarks(bookmarks)` — renders saved posts with score, author, forum tag, View in Forum link, and Remove button
+- Added `removeBookmark(postId)` — removes card from DOM in-place, updates counts, shows empty state if last bookmark
+
+**Changes to `css/forum.css`:**
+- `.post-action.bookmark.active` — accent color when saved
+
+**Changes to `css/profile.css`:**
+- Styles for `.profile-tabs`, `.profile-tab`, `.profile-tab.active`, `.tab-count`
+
+Committed and pushed.
+
+---
+
+## User
+
+I ran the SQL with no issue.
+
+---
+
+## Assistant
+
+Confirmed feature is live. Outlined verification steps: Save button appears on posts, toggles to Saved on click, Bookmarks tab on profile shows saved posts, Remove button works in-place.
+
+---
+
+## User
+
+Test this for changes or bugs.
+
+---
+
+## Assistant
+
+Found and fixed two bugs:
+
+1. **Tab count label bug** — `renderMyPosts` was setting the `.tab-count` badge text to "3 posts" instead of "3", causing the tab to read "My Posts 3 posts". Fixed to use just the number.
+
+2. **Double-click race condition in `toggleBookmark`** — two rapid clicks both read `post.bookmarked = false` before the first `await` resolved, causing a second insert attempt. The DB unique constraint silently rejected it but the button could flicker. Fixed with a per-post `_togglingBookmarks` Set that blocks re-entry until the DB operation completes. Also added error checking so a failed insert/delete no longer desyncs the local state.
+
+Committed and pushed.
+
+---
