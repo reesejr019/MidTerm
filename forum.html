@@ -219,6 +219,20 @@
           <div class="char-count"><span id="body-count">0</span>/2000</div>
         </div>
 
+        <!-- AI SUGGEST -->
+        <div class="ai-suggest-row">
+          <button type="button" class="btn btn-ai" id="ai-suggest-btn" onclick="suggestCategory()">
+            <i data-lucide="sparkles"></i> AI Suggest Category
+          </button>
+        </div>
+        <div class="ai-result" id="ai-result" style="display:none;">
+          <i data-lucide="bot"></i>
+          <div>
+            <strong id="ai-result-category"></strong>
+            <span id="ai-result-rationale"></span>
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="img-input">Image (optional)</label>
           <div
@@ -312,6 +326,29 @@
     </div>
   </div>
 
+  <!-- GROQ API KEY MODAL -->
+  <div class="overlay" id="ai-key-overlay" onclick="handleAiKeyOverlayClick(event)">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header">
+        <h2><i data-lucide="key"></i> Enter Groq API Key</h2>
+        <button class="close-btn" onclick="closeAiKeyModal()"><i data-lucide="x"></i></button>
+      </div>
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
+        A free Groq API key is required for AI suggestions. Get one at
+        <a href="https://console.groq.com" target="_blank" style="color:var(--accent);">console.groq.com</a> — no credit card needed.
+      </p>
+      <div class="form-group">
+        <label for="ai-key-input">Groq API Key</label>
+        <input type="password" id="ai-key-input" placeholder="gsk_..." autocomplete="off" />
+      </div>
+      <div id="ai-key-error" style="display:none; color:var(--accent-2); font-size:0.82rem; margin-bottom:12px;"></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeAiKeyModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveAiKey()">Save &amp; Continue</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
 
@@ -320,6 +357,7 @@
   <script src="js/supabase-client.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/notifications.js"></script>
+  <script src="js/ai.js"></script>
   <script src="js/forum.js"></script>
   <script>if (typeof lucide !== 'undefined') lucide.createIcons();</script>
 

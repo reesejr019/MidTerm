@@ -46,6 +46,80 @@ function clearModError() {
   document.getElementById('mod-error').classList.remove('visible');
 }
 
+// ── AI CATEGORY SUGGESTION ──
+async function suggestCategory() {
+  const title = document.getElementById('post-title').value.trim();
+  const body  = document.getElementById('post-body').value.trim();
+
+  if (!title) {
+    showToast('Add a title first so AI has something to analyze.');
+    return;
+  }
+
+  const btn    = document.getElementById('ai-suggest-btn');
+  const result = document.getElementById('ai-result');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader-2" class="ai-spin"></i> Thinking…';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  result.style.display = 'none';
+
+  try {
+    const { category, rationale } = await suggestPostCategory(title, body);
+
+    // Auto-select the suggested forum in the dropdown
+    const select = document.getElementById('post-forum');
+    for (const opt of select.options) {
+      if (opt.value === category) { opt.selected = true; break; }
+    }
+
+    // Show rationale card
+    document.getElementById('ai-result-category').textContent = category;
+    document.getElementById('ai-result-rationale').textContent = ' — ' + rationale;
+    result.style.display = 'flex';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  } catch (err) {
+    if (err.message === 'NO_KEY') {
+      openAiKeyModal();
+    } else {
+      showToast('AI suggestion failed: ' + err.message);
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="sparkles"></i> AI Suggest Category';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+}
+
+// ── AI KEY MODAL ──
+function openAiKeyModal() {
+  document.getElementById('ai-key-input').value = '';
+  document.getElementById('ai-key-error').style.display = 'none';
+  document.getElementById('ai-key-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('ai-key-input').focus(), 50);
+}
+
+function closeAiKeyModal() {
+  document.getElementById('ai-key-overlay').classList.remove('open');
+}
+
+function handleAiKeyOverlayClick(e) {
+  if (e.target === document.getElementById('ai-key-overlay')) closeAiKeyModal();
+}
+
+function saveAiKey() {
+  const val = document.getElementById('ai-key-input').value.trim();
+  const errEl = document.getElementById('ai-key-error');
+  if (!val.startsWith('gsk_')) {
+    errEl.textContent = 'That doesn\'t look like a valid Groq key (should start with gsk_).';
+    errEl.style.display = 'block';
+    return;
+  }
+  saveGroqKey(val);
+  closeAiKeyModal();
+  showToast('API key saved. Click ✨ AI Suggest Category again.');
+}
+
 // ── STATE ──
 let posts = [];
 let selectedImageDataURL = null;
@@ -594,6 +668,7 @@ function resetForm() {
   document.getElementById('title-count').textContent = '0';
   document.getElementById('body-count').textContent  = '0';
   removeImage({ stopPropagation: () => {} });
+  document.getElementById('ai-result').style.display = 'none';
 }
 
 // ── IMAGE UPLOAD ──
