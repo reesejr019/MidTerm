@@ -15,10 +15,6 @@ function saveGroqKey(key) {
   localStorage.setItem('groq_api_key', key.trim());
 }
 
-function clearGroqKey() {
-  localStorage.removeItem('groq_api_key');
-}
-
 /**
  * Ask Groq to pick the best forum category for a post.
  * @param {string} title
