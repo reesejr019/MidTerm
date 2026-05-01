@@ -10,3 +10,10 @@ Include an add/insert function while creating posts that allow for pictures to b
 
 Users can share and post about any moderated content
 I want to use html, javascript, and css for this project
+
+The AI Powered Feature works like this....
+Users login to forum page
+User makes a post
+User MUST include a title
+User can use AI for category suggestion AFTER entering groq API key (locally run)
+AI suggests category based on title content

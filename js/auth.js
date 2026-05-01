@@ -105,7 +105,7 @@ async function getProfile(userId) {
     .select('bio, interests, created_at')
     .eq('id', userId)
     .single();
-  return data || { bio: '', interests: [] };
+  return data || { bio: '', interests: [], created_at: null };
 }
 
 async function saveProfile(userId, data) {

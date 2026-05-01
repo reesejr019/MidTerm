@@ -184,21 +184,23 @@
   <script src="js/supabase-client.js"></script>
   <script>
     (async function loadIndexStats() {
+      // members + post count use head:true — no rows transferred, just the count header
+      // forum column fetch transfers one small column to count distinct active categories
       const [membersRes, postsRes, forumsRes] = await Promise.all([
         sb.from('profiles').select('*', { count: 'exact', head: true }),
         sb.from('posts').select('*', { count: 'exact', head: true }),
         sb.from('posts').select('forum')
       ]);
 
-      const members = membersRes.count ?? 0;
+      const members    = membersRes.count ?? 0;
       const postsCount = postsRes.count ?? 0;
-      const forums = forumsRes.data
+      const forums     = forumsRes.data
         ? new Set(forumsRes.data.map(r => r.forum)).size
         : 0;
 
       document.getElementById('stat-idx-members').textContent = members.toLocaleString();
-      document.getElementById('stat-idx-posts').textContent = postsCount.toLocaleString();
-      document.getElementById('stat-idx-forums').textContent = forums.toLocaleString();
+      document.getElementById('stat-idx-posts').textContent   = postsCount.toLocaleString();
+      document.getElementById('stat-idx-forums').textContent  = forums.toLocaleString();
     })();
   </script>
   <script>lucide.createIcons();</script>

@@ -15,7 +15,7 @@ let editInterests = [];
 async function initProfile() {
   const user = getCurrentUser();
   profileData = await getProfile(user.id);
-  const joinedAt = await getUserJoinedAt(user.id);
+  const joinedAt = profileData.created_at ? new Date(profileData.created_at).getTime() : null;
   const [myPosts, myBookmarks] = await Promise.all([loadMyPosts(), loadBookmarks()]);
 
   document.getElementById('profile-avatar').textContent   = user.username.charAt(0).toUpperCase();
@@ -129,7 +129,8 @@ function renderMyPosts(myPosts) {
 }
 
 async function deleteMyPost(id) {
-  await sb.from('posts').delete().eq('id', id);
+  const { error } = await sb.from('posts').delete().eq('id', id);
+  if (error) { showToast('Error deleting post. Please try again.'); return; }
   const myPosts = await loadMyPosts();
   document.getElementById('stat-post-count').textContent = myPosts.length;
   renderMyPosts(myPosts);
@@ -204,16 +205,15 @@ function renderBookmarks(bookmarks) {
 
 async function removeBookmark(postId) {
   const user = getCurrentUser();
-  await sb.from('bookmarks').delete().eq('post_id', postId).eq('user_id', user.id);
+  const { error } = await sb.from('bookmarks').delete().eq('post_id', postId).eq('user_id', user.id);
+  if (error) { showToast('Error removing bookmark. Please try again.'); return; }
+
   const card = document.getElementById(`bm-${postId}`);
   if (card) card.remove();
   const remaining = document.querySelectorAll('#my-bookmarks-feed .post-card').length;
   document.getElementById('my-bookmark-count').textContent   = remaining;
   document.getElementById('stat-bookmark-count').textContent = remaining;
-  if (remaining === 0) {
-    const bookmarks = await loadBookmarks();
-    renderBookmarks(bookmarks);
-  }
+  if (remaining === 0) renderBookmarks([]);
   showToast('Bookmark removed.');
 }
 

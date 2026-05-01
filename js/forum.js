@@ -26,11 +26,15 @@ const BANNED_WORDS = [
   'nazi', 'n*zi'
 ];
 
+// Pre-compiled once at load — each entry is [displayWord, regex]
+const _BANNED_PATTERNS = BANNED_WORDS.map(word => {
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return [word, new RegExp(`(?<![a-z])${escaped}(?![a-z])`, 'i')];
+});
+
 function moderateText(text) {
   const lower = text.toLowerCase();
-  for (const word of BANNED_WORDS) {
-    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const pattern = new RegExp(`(?<![a-z])${escaped}(?![a-z])`, 'i');
+  for (const [word, pattern] of _BANNED_PATTERNS) {
     if (pattern.test(lower)) return word;
   }
   return null;
@@ -340,7 +344,10 @@ async function loadMemberCount() {
 async function loadSidebarStats() {
   let countQuery = sb.from('posts').select('*', { count: 'exact', head: true });
   if (activeFilter !== 'All') countQuery = countQuery.eq('forum', activeFilter);
-  if (searchQuery) countQuery = countQuery.or(`title.ilike.%${searchQuery}%,body.ilike.%${searchQuery}%`);
+  if (searchQuery) {
+    const safe = searchQuery.replace(/[%_,()]/g, ' ').trim();
+    if (safe) countQuery = countQuery.or(`title.ilike.%${safe}%,body.ilike.%${safe}%`);
+  }
 
   const { count: postCount } = await countQuery;
 
@@ -507,6 +514,7 @@ async function submitPost(e) {
 
 // ── DELETE POST ──
 const _togglingBookmarks = new Set(); // guard against double-click
+const _togglingVotes     = new Set(); // guard against double-click
 
 async function toggleBookmark(postId) {
   if (!getCurrentUser()) { openAuthModal('login'); return; }
@@ -538,9 +546,10 @@ async function toggleBookmark(postId) {
 }
 
 async function deletePost(id) {
-  await sb.from('posts').delete().eq('id', id);
-  posts = posts.filter(p => p.id !== id);
+  const { error } = await sb.from('posts').delete().eq('id', id);
+  if (error) { showToast('Error deleting post. Please try again.'); return; }
 
+  posts = posts.filter(p => p.id !== id);
   const card = document.getElementById(`post-${id}`);
   if (card) card.remove();
 
@@ -599,51 +608,56 @@ async function submitReport() {
 // ── VOTE ──
 async function vote(id, dir) {
   if (!getCurrentUser()) { openAuthModal('login'); showToast('Please log in to vote.'); return; }
+  if (_togglingVotes.has(id)) return;
   const post = posts.find(p => p.id === id);
   if (!post) return;
 
-  const user        = getCurrentUser();
-  const currentVote = post.userVote || 0;
-  let newVote;
+  _togglingVotes.add(id);
+  try {
+    const user        = getCurrentUser();
+    const currentVote = post.userVote || 0;
+    let newVote;
 
-  if (currentVote === dir) {
-    newVote = 0;
-    await sb.from('votes').delete().eq('post_id', id).eq('user_id', user.id);
-  } else if (currentVote !== 0) {
-    newVote = 0;
-    await sb.from('votes').delete().eq('post_id', id).eq('user_id', user.id);
-  } else {
-    newVote = dir;
-    await sb.from('votes').upsert({ post_id: id, user_id: user.id, value: dir });
-  }
+    if (currentVote === dir) {
+      // Toggle off existing vote
+      newVote = 0;
+      await sb.from('votes').delete().eq('post_id', id).eq('user_id', user.id);
+    } else {
+      // Switch vote direction or cast a fresh vote
+      newVote = dir;
+      await sb.from('votes').upsert({ post_id: id, user_id: user.id, value: dir });
+    }
 
-  const { data: allVotes } = await sb.from('votes').select('value').eq('post_id', id);
-  const newScore = (allVotes || []).reduce((sum, v) => sum + v.value, 0);
+    const { data: allVotes } = await sb.from('votes').select('value').eq('post_id', id);
+    const newScore = (allVotes || []).reduce((sum, v) => sum + v.value, 0);
 
-  await sb.from('posts').update({ score: newScore }).eq('id', id);
-  post.score    = newScore;
-  post.userVote = newVote;
+    await sb.from('posts').update({ score: newScore }).eq('id', id);
+    post.score    = newScore;
+    post.userVote = newVote;
 
-  // Update only the affected card's vote UI in place
-  const card = document.getElementById(`post-${id}`);
-  if (card) {
-    const scoreEl  = card.querySelector('.vote-score');
-    const voteBtns = card.querySelectorAll('.vote-btn');
-    if (scoreEl)      scoreEl.textContent = newScore;
-    if (voteBtns[0])  voteBtns[0].classList.toggle('active-up',   newVote === 1);
-    if (voteBtns[1])  voteBtns[1].classList.toggle('active-down', newVote === -1);
-  }
+    // Update only the affected card's vote UI in place
+    const card = document.getElementById(`post-${id}`);
+    if (card) {
+      const scoreEl  = card.querySelector('.vote-score');
+      const voteBtns = card.querySelectorAll('.vote-btn');
+      if (scoreEl)      scoreEl.textContent = newScore;
+      if (voteBtns[0])  voteBtns[0].classList.toggle('active-up',   newVote === 1);
+      if (voteBtns[1])  voteBtns[1].classList.toggle('active-down', newVote === -1);
+    }
 
-  // Notify post author when a new vote is cast (not on removal)
-  if (newVote !== 0 && typeof createNotification === 'function' && post.author_id) {
-    const label = newVote === 1 ? 'upvoted' : 'downvoted';
-    createNotification({
-      recipientId:   post.author_id,
-      type:          newVote === 1 ? 'upvote' : 'downvote',
-      postId:        id,
-      actorUsername: user.username,
-      message:       `${user.username} ${label} your post`
-    });
+    // Notify post author when a new vote is cast (not on removal)
+    if (newVote !== 0 && typeof createNotification === 'function' && post.author_id) {
+      const label = newVote === 1 ? 'upvoted' : 'downvoted';
+      createNotification({
+        recipientId:   post.author_id,
+        type:          newVote === 1 ? 'upvote' : 'downvote',
+        postId:        id,
+        actorUsername: user.username,
+        message:       `${user.username} ${label} your post`
+      });
+    }
+  } finally {
+    _togglingVotes.delete(id);
   }
 }
 
@@ -979,7 +993,8 @@ async function submitComment(postId, parentId = null) {
 }
 
 async function deleteComment(postId, commentId) {
-  await sb.from('comments').delete().eq('id', commentId);
+  const { error } = await sb.from('comments').delete().eq('id', commentId);
+  if (error) { showToast('Error deleting comment. Please try again.'); return; }
   // Reload from DB — DB cascade removes any child replies automatically
   await loadAndRenderComments(postId);
   showToast('Comment deleted.');
