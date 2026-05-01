@@ -1364,3 +1364,94 @@ Let's abort this.
 Reverted all three files back to the localStorage key-entry approach: restored the original `ai.js` (reads key from localStorage, throws `NO_KEY`), re-added the API key modal to `forum.html`, and restored the modal helpers and `NO_KEY` handler in `forum.js`. Committed and pushed.
 
 ---
+
+## User
+
+Read through the files and find areas where we can make improvements.
+
+---
+
+## Assistant
+
+Read all JS files (`auth.js`, `forum.js`, `ai.js`, `notifications.js`, `profile.js`) and the main HTML files. Found 8 improvement areas:
+
+**Bugs:**
+1. Vote-switching broken — clicking the opposite direction removed the vote instead of switching it
+2. `loadSidebarStats` passed the raw search query to PostgREST without stripping `%_,()`, unlike `loadNextPage`
+
+**Redundant DB calls:**
+3. `getUserJoinedAt` made a second round-trip for `created_at` that `getProfile` already returns
+4. `removeBookmark` re-fetched all bookmarks just to pass `[]` to `renderBookmarks` when the list hit zero
+
+**Missing guards / robustness:**
+5. `vote()` had no double-click guard unlike `toggleBookmark`
+6. `deletePost` and `deleteComment` updated the DOM before checking for DB errors
+
+**Performance:**
+7. `moderateText` recompiled a new `RegExp` for every banned word on every call
+8. `index.html` fetched every post row just to count distinct forum categories
+
+---
+
+## User
+
+Let's make all these changes. Start with the most impactful ones first.
+
+---
+
+## Assistant
+
+Fixed all 8 issues in order of impact using TodoWrite to track progress:
+
+1. **Vote-switching** — collapsed the three-branch `if/else if/else` into two cases: same direction → delete (toggle off), any other → `upsert` with the new direction. The `upsert` handles both fresh votes and direction switches in one call.
+
+2. **`loadSidebarStats` sanitization** — added the same `replace(/[%_,()]/g, ' ').trim()` guard that `loadNextPage` already used.
+
+3. **Vote double-click guard** — added `_togglingVotes` Set with `try/finally` so rapid clicks can't fire two concurrent mutations.
+
+4. **Delete error checking** — `deletePost`, `deleteComment`, and `deleteMyPost` now check the `error` return before touching the DOM.
+
+5. **Redundant `getUserJoinedAt` call** — `getProfile` already selects `created_at`; `initProfile` now reads it directly.
+
+6. **`removeBookmark` re-fetch** — calls `renderBookmarks([])` directly instead of `await loadBookmarks()` → render. Also added error checking.
+
+7. **Pre-compiled moderation regexes** — built `_BANNED_PATTERNS` once at module load; `moderateText` iterates the pre-compiled list instead of calling `new RegExp()` per word per call.
+
+8. **Index page forum count** — cleaned up with comments explaining the tradeoff (true `COUNT(DISTINCT)` requires a stored procedure; the single-column fetch is already the lightest viable approach).
+
+---
+
+## User
+
+Test these changes for bugs.
+
+---
+
+## Assistant
+
+Found one regression introduced during the moderation regex change:
+
+**Bug: `moderateText` false positives on uppercase text** — The lookbehind `(?<![a-z])` only recognizes lowercase letters as word characters. The original code lowercased the input before testing, so `MASS` became `mass` and the `m` blocked the match. By removing `.toLowerCase()`, `M` was no longer seen as a letter by the lookbehind, causing words like `MASS` to be falsely flagged for `ass`.
+
+**Fix:** Restored `const lower = text.toLowerCase()` in `moderateText` so the lookbehind works correctly. The pre-compilation performance win is kept; only the implicit removal of lowercasing was reverted.
+
+All other changes verified clean:
+- Vote `upsert` relies on a unique constraint on `(post_id, user_id)` — confirmed the original code already used `upsert` for fresh votes, so the constraint exists
+- `try/finally` on the vote guard correctly releases on thrown errors
+- Sidebar sanitization matches `loadNextPage` exactly
+- `removeBookmark` empty-state behavior is correct
+- `getUserJoinedAt` elimination correctly handles `null` created_at via `formatJoinDate`
+
+---
+
+## User
+
+Push and update these changes to the GitHub repo.
+
+---
+
+## Assistant
+
+Staged `index.html`, `js/auth.js`, `js/forum.js`, `js/profile.js`, and `README.md`. Committed and pushed as `000386e` to `main` on `github.com/reesejr019/MidTerm`.
+
+---
